@@ -21,6 +21,7 @@
             <div class="nav-item" data-section="world">Мир</div>
             <div class="nav-item" data-section="solo">Соло-режим</div>
             <div class="nav-item" data-section="campaigns">Кампании</div>
+            <div class="nav-item" data-section="admin" style="color:#f87171;">Админ</div>
         </nav>
 
         <!-- Основной контент -->
@@ -77,6 +78,42 @@
             <section id="section-campaigns" class="section hidden">
                 <h2>Кампании (11)</h2>
                 <div class="campaign-list" id="campaignList">Загрузка...</div>
+            </section>
+
+            <!-- Админ-панель -->
+            <section id="section-admin" class="section hidden">
+                <h2>⚙️ Админ-панель</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Статистика</h3>
+                        <div id="adminStats">Загрузка...</div>
+                        <button class="btn btn-secondary" onclick="app.loadAdminStats()">Обновить</button>
+                    </div>
+                    <div class="card">
+                        <h3>Соло-игроки</h3>
+                        <div id="adminSoloList">Загрузка...</div>
+                        <button class="btn btn-secondary" onclick="app.loadAdminSolo()">Обновить</button>
+                    </div>
+                    <div class="card">
+                        <h3>Управление</h3>
+                        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                            <input type="text" id="adminCharGuid" placeholder="GUID персонажа" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
+                            <label style="font-size:0.85rem; color:var(--text-muted); margin:0.25rem 0;">
+                                <input type="checkbox" id="adminSoloToggle" style="margin-right:0.5rem;"> Активен соло-режим
+                            </label>
+                            <button class="btn btn-primary" onclick="app.adminToggleSolo()">Применить соло</button>
+                            <button class="btn btn-secondary" onclick="app.adminRestart()" style="margin-top:1rem;">Рестарт WorldServer</button>
+                        </div>
+                        <div id="adminActionMessage"></div>
+                    </div>
+                    <div class="card">
+                        <h3>Логи соло-состояний</h3>
+                        <div id="adminLogs" style="max-height:200px; overflow-y:auto; font-size:0.85rem; color:var(--text-muted);">Загрузка...</div>
+                    </div>
+                </div>
+                <div style="margin-top:1rem; font-size:0.8rem; color:var(--text-muted);">
+                    Для доступа требуются права GM (заголовок X-GM-Level >= 1).
+                </div>
             </section>
         </main>
 

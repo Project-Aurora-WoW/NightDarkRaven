@@ -1,14 +1,18 @@
 // ============================================================================
-// Ночь темного Ворона — API соло-режима и компаньонов (с записью в БД)
+// Ночь темного Ворона — API соло-режима и компаньонов (с записью в БД + Discord)
 // ============================================================================
 
 const express = require('express');
 const mysql = require('mysql2/promise');
 const router = express.Router();
 const config = require('../config');
+const DiscordService = require('../services/discord_service');
 
-// Пул подключений к БД world (для solo_state)
+// Пулы подключений
 const worldPool = mysql.createPool(config.databases.world);
+const charPool = mysql.createPool(config.databases.characters);
+
+const discord = new DiscordService(config.discord.webhookUrl);
 
 // POST /api/solo/toggle — включить/выключить соло-режим (запись в solo_state)
 router.post('/toggle', async (req, res) => {
@@ -33,6 +37,21 @@ router.post('/toggle', async (req, res) => {
             `INSERT INTO solo_state_log (character_guid, account_id, solo_mode, changed_by) VALUES (?, ?, ?, 'web')`,
             [characterGuid, accountId || 0, soloMode]
         );
+
+        // Уведомление в Discord
+        try {
+            const [chars] = await charPool.query('SELECT name FROM characters WHERE guid = ? LIMIT 1', [characterGuid]);
+            if (chars.length > 0 && enable) {
+                await discord.notifySoloEnabled({
+                    characterName: chars[0].name,
+                    accountId: accountId || 0,
+                    characterGuid,
+                    zone: 'Веб-клиент'
+                });
+            }
+        } catch (e) {
+            console.error('[Discord notify]', e.message);
+        }
 
         res.json({
             success: true,
@@ -76,6 +95,20 @@ router.post('/companion', async (req, res) => {
             `UPDATE solo_state SET companion_entry = ? WHERE character_guid = ?`,
             [companionEntry, characterGuid]
         );
+
+        // Уведомление в Discord
+        try {
+            const companionNames = { 92001: 'Теневой Ворон', 92002: 'Страж Ночи', 92003: 'Целитель Лунный' };
+            const [chars] = await charPool.query('SELECT name FROM characters WHERE guid = ? LIMIT 1', [characterGuid]);
+            if (chars.length > 0) {
+                await discord.notifyCompanion({
+                    characterName: chars[0].name,
+                    companionName: companionNames[companionEntry] || `#${companionEntry}`
+                });
+            }
+        } catch (e) {
+            console.error('[Discord notify]', e.message);
+        }
 
         res.json({
             success: true,

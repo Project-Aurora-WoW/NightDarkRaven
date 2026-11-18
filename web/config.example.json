@@ -29,6 +29,16 @@
       "database": "world"
     }
   },
+  "discord": {
+    "webhookUrl": "",
+    "enabled": false
+  },
+  "watcher": {
+    "enabled": false,
+    "watchDir": "./../../../server/luaship/NightDarkRaven",
+    "restartScript": "./../../../tools/restart_worldserver",
+    "debounceMs": 3000
+  },
   "security": {
     "corsOrigin": "*",
     "sessionSecret": "night-dark-raven-secret-change-me"

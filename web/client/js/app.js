@@ -49,6 +49,11 @@ const app = {
         if (section === 'solo') {
             this.loadSoloData();
         }
+        if (section === 'admin') {
+            this.loadAdminStats();
+            this.loadAdminSolo();
+            this.loadAdminLogs();
+        }
     },
 
     async login() {
@@ -212,6 +217,107 @@ const app = {
 
     refreshChars() {
         this.loadCharacters();
+    },
+
+    // Админ-панель
+    async loadAdminStats() {
+        try {
+            const stats = await api.adminGetStats();
+            document.getElementById('adminStats').innerHTML = `
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem;">
+                    <div style="background:var(--border); padding:1rem; border-radius:6px;">
+                        <div style="color:var(--text-muted); font-size:0.8rem;">Онлайн персонажей</div>
+                        <div style="color:var(--accent-glow); font-size:1.5rem;">${stats.onlineCharacters}</div>
+                    </div>
+                    <div style="background:var(--border); padding:1rem; border-radius:6px;">
+                        <div style="color:var(--text-muted); font-size:0.8rem;">Всего персонажей</div>
+                        <div style="color:var(--text); font-size:1.5rem;">${stats.totalCharacters}</div>
+                    </div>
+                    <div style="background:var(--border); padding:1rem; border-radius:6px;">
+                        <div style="color:var(--text-muted); font-size:0.8rem;">Активных соло-режимов</div>
+                        <div style="color:#4ade80; font-size:1.5rem;">${stats.soloActive}</div>
+                    </div>
+                </div>
+            `;
+        } catch (e) {
+            document.getElementById('adminStats').innerHTML = `<p style="color:#f87171">${e.message}</p>`;
+        }
+    },
+
+    async loadAdminSolo() {
+        const el = document.getElementById('adminSoloList');
+        el.innerHTML = 'Загрузка...';
+        try {
+            const result = await api.adminGetSoloPlayers();
+            const players = result.soloPlayers || [];
+            el.innerHTML = players.map(p => `
+                <div class="char-card" style="padding:0.75rem;">
+                    <div style="flex:1;">
+                        <strong>${p.character_name || 'Неизвестно'}</strong> (GUID: ${p.character_guid})
+                        <br><small style="color:var(--text-muted);">Уровень ${p.level} · Зона ${p.zone} · Аккаунт ${p.account_id}</small>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="color:${p.solo_mode ? '#4ade80' : '#f87171'}; font-weight:bold;">
+                            ${p.solo_mode ? 'СОЛО' : 'Группа'}
+                        </span>
+                    </div>
+                </div>
+            `).join('') || '<p>Нет данных о соло-состояниях</p>';
+        } catch (e) {
+            el.innerHTML = `<p style="color:#f87171">${e.message}</p>`;
+        }
+    },
+
+    async adminToggleSolo() {
+        const guid = document.getElementById('adminCharGuid').value;
+        const enable = document.getElementById('adminSoloToggle').checked;
+        const msgEl = document.getElementById('adminActionMessage');
+
+        if (!guid) {
+            msgEl.textContent = 'Укажите GUID персонажа';
+            msgEl.style.color = '#f87171';
+            return;
+        }
+
+        try {
+            const result = await api.adminToggleSolo(parseInt(guid), enable);
+            msgEl.textContent = result.message;
+            msgEl.style.color = '#4ade80';
+            this.loadAdminSolo();
+        } catch (e) {
+            msgEl.textContent = 'Ошибка: ' + e.message;
+            msgEl.style.color = '#f87171';
+        }
+    },
+
+    async adminRestart() {
+        if (!confirm('Перезапустить WorldServer?')) return;
+        try {
+            const result = await api.adminRestart();
+            document.getElementById('adminActionMessage').textContent = result.message;
+            document.getElementById('adminActionMessage').style.color = '#4ade80';
+            alert('Рестарт WorldServer инициирован. Подождите несколько секунд.');
+        } catch (e) {
+            alert('Ошибка: ' + e.message);
+        }
+    },
+
+    async loadAdminLogs() {
+        const el = document.getElementById('adminLogs');
+        el.innerHTML = 'Загрузка...';
+        try {
+            const result = await api.adminGetLogs();
+            const logs = result.logs || [];
+            el.innerHTML = logs.map(l => {
+                const date = new Date(l.changed_at).toLocaleString('ru-RU');
+                return `<div style="padding:0.4rem 0; border-bottom:1px solid var(--border);">
+                    <strong style="color:${l.solo_mode ? '#4ade80' : '#f87171'}">${l.solo_mode ? 'ВКЛ' : 'ВЫКЛ'} соло</strong>
+                    · GUID ${l.character_guid} · ${l.changed_by} · ${date}
+                </div>`;
+            }).join('') || '<p>Логи пусты</p>';
+        } catch (e) {
+            el.innerHTML = `<p style="color:#f87171">${e.message}</p>`;
+        }
     }
 };
 

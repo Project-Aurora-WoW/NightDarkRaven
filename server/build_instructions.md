@@ -160,3 +160,48 @@ generate_self_signed.bat    # Windows
 - `patch_realmlist.py` — альтернативный патч на Python
 
 Отредактируйте `launcher/config.json`, укажите `wowPath` и `realmlist`, затем запустите лаунчер.
+
+## 12. Админ-панель веб-клиента
+
+Веб-клиент содержит админ-панель (`/admin`) для GM-администрирования:
+- Список всех соло-игроков и их статусов
+- Массовое включение/выключение соло-режима
+- Статистика сервера (онлайн, персонажи, активных соло)
+- Рестарт WorldServer из веб-интерфейса
+- Логи изменений соло-состояний
+
+Доступ: требуется заголовок `X-GM-Level >= 1` (или прямое обращение к БД `solo_state`).
+
+## 13. Авто-рестарт WorldServer при изменении Lua
+
+Сервис `watcher_service.js` следит за изменениями в `server/luaship/NightDarkRaven/`. При изменении `.lua` файлов запускается `tools/restart_worldserver.{sh,bat}`.
+
+Включить в `web/config.json`:
+```json
+{
+  "watcher": {
+    "enabled": true,
+    "watchDir": "./server/luaship/NightDarkRaven",
+    "restartScript": "./tools/restart_worldserver",
+    "debounceMs": 3000
+  }
+}
+```
+
+## 14. Discord уведомления
+
+Интеграция с Discord через Webhook. Уведомления при:
+- Включении соло-режима игроком
+- Входе в соло-подземелье
+- Получении компаньона
+- Рестарте сервера из админ-панели
+
+Настройка в `web/config.json`:
+```json
+{
+  "discord": {
+    "webhookUrl": "https://discord.com/api/webhooks/...",
+    "enabled": true
+  }
+}
+```

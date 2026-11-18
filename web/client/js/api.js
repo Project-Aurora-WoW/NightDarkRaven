@@ -65,6 +65,35 @@ const api = {
         });
     },
 
+    // Админ API
+    adminGetStats() {
+        return this.request('/admin/stats', { headers: { 'X-GM-Level': '3' } });
+    },
+
+    adminGetSoloPlayers() {
+        return this.request('/admin/solo-players', { headers: { 'X-GM-Level': '3' } });
+    },
+
+    adminToggleSolo(characterGuid, enable) {
+        return this.request('/admin/solo-toggle', {
+            method: 'POST',
+            headers: { 'X-GM-Level': '3' },
+            body: JSON.stringify({ characterGuid, enable })
+        });
+    },
+
+    adminRestart() {
+        return this.request('/admin/restart', {
+            method: 'POST',
+            headers: { 'X-GM-Level': '3' },
+            body: JSON.stringify({ reason: 'Админ-панель веб-клиента' })
+        });
+    },
+
+    adminGetLogs() {
+        return this.request('/admin/logs', { headers: { 'X-GM-Level': '3' } });
+    },
+
     companionSelect(characterGuid, companionEntry) {
         return this.request('/solo/companion', {
             method: 'POST',
