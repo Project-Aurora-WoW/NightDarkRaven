@@ -1,0 +1,21 @@
+diff --git a/src/server/game/World/WorldServer.cpp b/src/server/game/World/WorldServer.cpp
+index 0000000..5555555 100644
+--- a/src/server/game/World/WorldServer.cpp
++++ b/src/server/game/World/WorldServer.cpp
+@@ -WORLDSERVER_PLAYER_LOGIN +WORLDSERVER_PLAYER_LOGIN
+     // Загрузить соло-состояние из БД
+     if (QueryResult result = WorldDatabase.Query("SELECT solo_mode FROM solo_state WHERE character_guid = " + std::to_string(player->GetGUIDLow())))
+     {
+         bool soloMode = result->Fetch()[0].Get<bool>();
+         player->SetSoloModeEnabled(soloMode);
+         
+         // Применить модификаторы к питомцам/компаньонам игрока
+         if (soloMode)
+         {
+             sLog->OutDebug(LOG_FILTER_WORLDSERVER, "Solo mode enabled for player %s (guid %u)", 
+                 player->GetName().c_str(), player->GetGUIDLow());
+         }
+     }
+     
+     // Загрузить навыки Ночь темного Ворона
+     player->LoadNightRavenSkills(nullptr); // Будет загружено из WorldDatabase в Player::LoadFromDB

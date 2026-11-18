@@ -1,0 +1,21 @@
+diff --git a/src/server/game/Entities/Unit.h b/src/server/game/Entities/Unit.h
+index 0000000..3333333 100644
+--- a/src/server/game/Entities/Unit.h
++++ b/src/server/game/Entities/Unit.h
+@@ -UNIT_CLASS_DECLARATION +UNIT_CLASS_DECLARATION
+ public:
+     // Соло-режим Ночь темного Ворона
+     bool IsSoloModeEnabled() const;
+     void SetSoloModeEnabled(bool enabled);
+     
+     // Получить множитель здоровья для соло-режима
+     float GetSoloHealthMultiplier() const;
+     
+     // Получить множитель урона для соло-режима
+     float GetSoloDamageMultiplier() const;
+     
+     // Применить соло-модификаторы к существу
+     void ApplySoloModifiers();
+     
+ private:
+     bool m_soloModeEnabled;

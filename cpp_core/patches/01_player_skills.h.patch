@@ -1,0 +1,29 @@
+diff --git a/src/server/game/Entities/Player.h b/src/server/game/Entities/Player.h
+index 0000000..1111111 100644
+--- a/src/server/game/Entities/Player.h
++++ b/src/server/game/Entities/Player.h
+@@ -CLASS_DECLARATION_BEGIN +CLASS_DECLARATION_BEGIN
+ // Навыки Ночь темного Ворона
+ public:
+     // Загрузить навыки из БД
+     void LoadNightRavenSkills(QueryResult result);
+     
+     // Получить значение навыка (переопределяет стандартный если навык кастомный)
+     uint32 GetNightRavenSkillValue(uint32 skillId) const;
+     
+     // Установить значение навыка
+     void SetNightRavenSkillValue(uint32 skillId, uint32 value);
+     
+     // Повысить навык
+     void NightRavenSkillUp(uint32 skillId, uint32 amount = 1);
+     
+     // Проверить, знает ли игрок навык
+     bool HasNightRavenSkill(uint32 skillId) const;
+     
+     // Сохранить навыки в БД
+     void SaveNightRavenSkillsToDB();
+     
+ private:
+     // Карта навыков: skill_id -> значение
+     std::map<uint32, uint32> m_nightRavenSkills;
+     bool m_nightRavenSkillsLoaded;

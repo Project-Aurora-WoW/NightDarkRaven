@@ -1,0 +1,52 @@
+diff --git a/src/server/game/Entities/Unit.cpp b/src/server/game/Entities/Unit.cpp
+index 0000000..4444444 100644
+--- a/src/server/game/Entities/Unit.cpp
++++ b/src/server/game/Entities/Unit.cpp
+@@ -UNIT_CONSTRUCTOR +UNIT_CONSTRUCTOR
+     m_soloModeEnabled = false;
+@@ -UNIT_CALC_DAMAGE +UNIT_CALC_DAMAGE
+     // Соло-режим: уменьшаем урон мобов для соло-игроков
+     if (IsSoloModeEnabled())
+         damage *= GetSoloDamageMultiplier();
+@@ -UNIT_MODIFY_HEALTH +UNIT_MODIFY_HEALTH
+     // Соло-режим: уменьшаем maximale здоровье мобов для соло-игроков
+     if (IsSoloModeEnabled())
+         health *= GetSoloHealthMultiplier();
+
+// === Реализация методов соло-режима ===
+
+bool Unit::IsSoloModeEnabled() const
+{
+    return m_soloModeEnabled;
+}
+
+void Unit::SetSoloModeEnabled(bool enabled)
+{
+    m_soloModeEnabled = enabled;
+}
+
+float Unit::GetSoloHealthMultiplier() const
+{
+    // -40% здоровья для мобов в соло-режиме (0.60 = 60%)
+    return 0.60f;
+}
+
+float Unit::GetSoloDamageMultiplier() const
+{
+    // -30% урона для мобов в соло-режиме (0.70 = 70%)
+    return 0.70f;
+}
+
+void Unit::ApplySoloModifiers()
+{
+    if (!IsSoloModeEnabled())
+        return;
+    
+    // Уменьшаем текущее и maximale здоровье
+    uint32 maxHealth = GetMaxHealth();
+    uint32 newMaxHealth = uint32(maxHealth * GetSoloHealthMultiplier());
+    SetMaxHealth(newMaxHealth);
+    SetHealth(std::min(GetHealth(), newMaxHealth));
+    
+    // Уменьшаем урон (применяется при расчете урона в CalcDamage)
+}
