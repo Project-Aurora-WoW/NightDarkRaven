@@ -103,6 +103,11 @@ mysql -u root -p world < 03_campaigns_items.sql
 mysql -u root -p world < 04_campaigns_quests.sql
 mysql -u root -p world < 05_campaigns_loot.sql
 mysql -u root -p world < 06_campaigns_spawns.sql
+mysql -u root -p world < 07_campaigns_solo.sql
+mysql -u root -p world < 08_solo_integration.sql
+mysql -u root -p world < 09_client_patches.sql
+mysql -u root -p world < 10_legendary_stones.sql
+mysql -u root -p world < 11_illidans_lessons.sql
 ```
 
 После импорта перезагрузите世界 в игре или сервер:

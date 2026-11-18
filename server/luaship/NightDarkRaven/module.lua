@@ -1,10 +1,10 @@
 -- ============================================================================
 -- Ночь темного Ворона — Основной модуль AzerothCore (Lua / Eluna)
--- Регистрирует все подсистемы: предметы, навыки, кампании, зоны, подземелья, соло
+-- Регистрирует все подсистемы: предметы, навыки, кампании, зоны, подземелья, соло, камни, уроки
 -- ============================================================================
 
 NightDarkRaven = {}
-NightDarkRaven.Version = "1.1.0"
+NightDarkRaven.Version = "1.2.0"
 NightDarkRaven.ModuleName = "NightDarkRaven"
 
 -- Подсистемы (порядок важен: зависимости)
@@ -20,6 +20,8 @@ local SoloDungeonSystem = require("NightDarkRaven.systems.solo_dungeon_system")
 local SoloWebSync  = require("NightDarkRaven.systems.solo_web_sync")
 local ClientPatchSystem = require("NightDarkRaven.systems.client_patch_system")
 local ClientPatchLauncher = require("NightDarkRaven.systems.client_patch_launcher")
+local LegendaryStonesSystem = require("NightDarkRaven.systems.legendary_stones_system")
+local IllidanLessonsSystem = require("NightDarkRaven.systems.illidans_lessons_system")
 
 function NightDarkRaven.OnLoad()
     print("|cff4B0082[NightDarkRaven]|r Загрузка модуля v" .. NightDarkRaven.Version .. "...")
@@ -36,7 +38,8 @@ function NightDarkRaven.OnLoad()
     SoloWebSync.Init()
     ClientPatchSystem.Init()
     ClientPatchLauncher.Init()
-end
+    LegendaryStonesSystem.Init()
+    IllidanLessonsSystem.Init()
 
     print("|cff4B0082[NightDarkRaven]|r Модуль загружен успешно.")
 end
