@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ночь темного Ворона — Веб-клиент</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Шапка -->
+        <header class="header">
+            <div class="logo">🌙 Ночь темного Ворона</div>
+            <div class="status" id="serverStatus">Проверка сервера...</div>
+        </header>
+
+        <!-- Боковая навигация -->
+        <nav class="nav">
+            <div class="nav-item active" data-section="login">Вход</div>
+            <div class="nav-item" data-section="characters">Персонажи</div>
+            <div class="nav-item" data-section="world">Мир</div>
+            <div class="nav-item" data-section="solo">Соло-режим</div>
+            <div class="nav-item" data-section="campaigns">Кампании</div>
+        </nav>
+
+        <!-- Основной контент -->
+        <main class="main">
+            <!-- Вход -->
+            <section id="section-login" class="section">
+                <h2>Вход в аккаунт</h2>
+                <div class="card">
+                    <input type="text" id="loginUsername" placeholder="Логин">
+                    <input type="password" id="loginPassword" placeholder="Пароль">
+                    <button class="btn btn-primary" onclick="app.login()">Войти</button>
+                </div>
+                <div id="loginMessage"></div>
+            </section>
+
+            <!-- Персонажи -->
+            <section id="section-characters" class="section hidden">
+                <h2>Персонажи</h2>
+                <div class="char-list" id="charList">Загрузка...</div>
+                <button class="btn btn-secondary" onclick="app.refreshChars()">Обновить</button>
+            </section>
+
+            <!-- Мир -->
+            <section id="section-world" class="section hidden">
+                <h2>Мир Ночи темного Ворона</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Зоны</h3>
+                        <div id="zoneList">Загрузка...</div>
+                    </div>
+                    <div class="card">
+                        <h3>Подземелья</h3>
+                        <div id="dungeonList">Загрузка...</div>
+                    </div>
+                    <div class="card">
+                        <h3>Предметы</h3>
+                        <div id="itemList">Загрузка...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Соло-режим -->
+            <section id="section-solo" class="section hidden">
+                <h2>Соло-режим</h2>
+                <div class="card">
+                    <h3>Компаньоны</h3>
+                    <div id="companionList">Загрузка...</div>
+                    <button class="btn btn-primary" onclick="app.toggleSolo()">Переключить соло-режим</button>
+                </div>
+                <div id="soloStatus">Соло-режим: выключен</div>
+            </section>
+
+            <!-- Кампании -->
+            <section id="section-campaigns" class="section hidden">
+                <h2>Кампании (11)</h2>
+                <div class="campaign-list" id="campaignList">Загрузка...</div>
+            </section>
+        </main>
+
+        <!-- Подвал -->
+        <footer class="footer">
+            Ночь темного Ворона · AzerothCore + WoW 3.3.5a · Веб-клиент v1.0.0
+        </footer>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

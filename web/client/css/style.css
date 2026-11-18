@@ -1,0 +1,197 @@
+/* ============================================================================
+   Ночь темного Ворона — Стили веб-клиента
+   Фэнтези-оформление, тёмная тема
+   ============================================================================ */
+
+:root {
+    --bg-dark: #0f0d1a;
+    --bg-card: #1a172e;
+    --accent: #7b2cbf;
+    --accent-glow: #a78bfa;
+    --text: #e9e4f0;
+    --text-muted: #9a94b0;
+    --border: #2e2a47;
+    --success: #4ade80;
+    --danger: #f87171;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: var(--bg-dark);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+.app { display: flex; flex-direction: column; height: 100vh; }
+
+/* Шапка */
+.header {
+    background: linear-gradient(135deg, #1a172e 0%, #0f0d1a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-glow);
+    letter-spacing: 1px;
+}
+
+.status {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Навигация */
+.nav {
+    width: 220px;
+    background: var(--bg-card);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 0;
+}
+
+.nav-item {
+    padding: 1rem 1.5rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.nav-item:hover { background: rgba(123, 44, 191, 0.1); color: var(--text); }
+
+.nav-item.active {
+    background: rgba(123, 44, 191, 0.15);
+    color: var(--accent-glow);
+    border-left: 3px solid var(--accent);
+}
+
+/* Основной контент */
+.main {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.section { max-width: 1000px; }
+
+.section.hidden { display: none; }
+
+h2 { margin-bottom: 1.5rem; color: var(--accent-glow); }
+
+/* Карточки */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.card h3 { color: var(--accent-glow); margin-bottom: 1rem; }
+
+/* Кнопки */
+.btn {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: white;
+}
+
+.btn-primary:hover { background: var(--accent-glow); }
+
+.btn-secondary {
+    background: var(--border);
+    color: var(--text);
+}
+
+.btn-secondary:hover { background: #3e3a5f; }
+
+/* Список персонажей */
+.char-list { display: grid; gap: 1rem; }
+
+.char-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.char-info h4 { margin-bottom: 0.25rem; color: var(--accent-glow); }
+.char-info p { color: var(--text-muted); font-size: 0.9rem; }
+
+/* Список кампаний */
+.campaign-list { display: grid; gap: 1rem; }
+
+.campaign-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.campaign-info h4 { color: var(--accent-glow); }
+.campaign-info p { color: var(--text-muted); font-size: 0.85rem; }
+
+/* Сетка */
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+
+/* Списки */
+ul { list-style: none; padding: 0; }
+li { padding: 0.5rem 0; border-bottom: 1px solid var(--border); color: var(--text-muted); }
+
+/* Формы */
+input {
+    width: 100%;
+    padding: 0.8rem;
+    margin: 0.5rem 0;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+input:focus { outline: none; border-color: var(--accent); }
+
+/* Статус */
+#serverStatus.online { color: var(--success); }
+#serverStatus.offline { color: var(--danger); }
+
+/* Подвал */
+.footer {
+    background: #0a0814;
+    border-top: 1px solid var(--border);
+    padding: 1rem 2rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* Адаптив */
+@media (max-width: 768px) {
+    .app { flex-direction: column; }
+    .nav { width: 100%; flex-direction: row; overflow-x: auto; padding: 0.5rem; }
+    .main { padding: 1rem; }
+}

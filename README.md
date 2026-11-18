@@ -26,17 +26,53 @@ NightDarkRaven/
 │   │           └── src/
 │   ├── luaship/                # Lua-скрипты (Eluna), загружаются без перекомпиляции
 │   │   └── NightDarkRaven/
-│   │       ├── npc_dark_raven.lua
-│   │       ├── world_events.lua
-│   │       ├── quest_shadow_feather.lua
-│   │       └── README.md
+│   │       ├── init.lua
+│   │       ├── module.lua
+│   │       ├── systems/
+│   │       │   ├── item_system.lua
+│   │       │   ├── skill_system.lua
+│   │       │   ├── quest_system.lua
+│   │       │   ├── zone_system.lua
+│   │       │   ├── dungeon_system.lua
+│   │       │   ├── solo_system.lua
+│   │       │   ├── companion_system.lua
+│   │       │   ├── scaling_system.lua
+│   │       │   └── solo_dungeon_system.lua
+│   │       └── quests/
+│   │           ├── campaign_01..11.lua
+│   │           ├── solo_quests.lua
+│   │           └── campaign_manager.lua
 │   ├── sql/                    # SQL-скрипты для БД (world/characters/auth)
+│   │   ├── 01_creatures_night_dark_raven.sql
+│   │   ├── 02_campaigns_creatures.sql
+│   │   ├── 03_campaigns_items.sql
+│   │   ├── 04_campaigns_quests.sql
+│   │   ├── 05_campaigns_loot.sql
+│   │   ├── 06_campaigns_spawns.sql
+│   │   └── 07_campaigns_solo.sql
 │   ├── conf/                   # worldserver.conf, authserver.conf (шаблоны)
 │   └── build_instructions.md
-├── client/                     # Файлы клиента (не включает сам WoW 3.3.5a)
+├── client/                     # Файлы клиента WoW 3.3.5a (не включает сам клиент)
 │   ├── configs/
 │   │   └── realmlist.wtf
 │   └── patches/                # Кастомные MPQ/ патчи клиента (опционально)
+├── web/                        # Веб-клиент (Node.js + Express + Vanilla JS)
+│   ├── README.md
+│   ├── package.json
+│   ├── config.example.json
+│   ├── .gitignore
+│   ├── server/
+│   │   ├── index.js
+│   │   ├── config.js
+│   │   └── routes/
+│   │       ├── auth.js
+│   │       ├── characters.js
+│   │       ├── world.js
+│   │       └── solo.js
+│   └── client/
+│       ├── index.html
+│       ├── css/style.css
+│       └── js/{api,app}.js
 └── tools/                      # Вспомогательные скрипты (импорт, дампы, генераторы)
 ```
 
@@ -46,6 +82,7 @@ NightDarkRaven/
 - git, CMake 3.16+, GCC 9+ / MSVC 2019+
 - MySQL 5.7+ / MariaDB 10.3+
 - Установленный и патченый клиент WoW 3.3.5a
+- Node.js 16+ (для веб-клиента)
 - 4+ ГБ ОЗУ, диск SSD рекомендуется
 
 ### 2. Сборка сервера (AzerothCore)
@@ -165,6 +202,28 @@ server/luaship/NightDarkRaven/
 INSERT INTO `realmlist` (`name`, `address`, `localAddress`, `port`, `gamebuild`)
 VALUES ('Ночь темного Ворона', '127.0.0.1', '127.0.0.1', 8090, 12340);
 ```
+
+## Веб-клиент (`web/`)
+
+Веб-интерфейс на Node.js + Express для управления аккаунтом, персонажами и просмотра мира через браузер.
+
+### Быстрый запуск
+```bash
+cd web
+npm install
+cp config.example.json config.json
+# Отредактировать config.json: указать пароли к MySQL (auth/characters/world)
+npm start
+```
+Веб-клиент доступен на `http://localhost:3000`.
+
+### Возможности
+- Авторизация через аккаунт AzerothCore (БД `auth`)
+- Список персонажей (БД `characters`)
+- Просмотр кампаний, зон, подземелий, предметов (БД `world`)
+- Соло-режим и компаньоны (интеграция с Lua-сервером)
+
+Подробнее: `web/README.md`.
 
 ## Лицензия
 Серверный код — AGPLv3 (в соответствии с AzerothCore). Клиент WoW 3.3.5a принадлежит Blizzard Entertainment; данный репозиторий **не содержит** файлов клиента.

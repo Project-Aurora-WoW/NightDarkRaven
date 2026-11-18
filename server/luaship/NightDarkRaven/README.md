@@ -7,34 +7,42 @@ server/luaship/NightDarkRaven/
 ├── init.lua                  # Точка входа для Eluna
 ├── module.lua                # Основной модуль, регистрирует все подсистемы
 ├── systems/
-│   ├── item_system.lua       # Предметы (entry 90001-91005)
-│   ├── skill_system.lua      # Навыки/профессии (90001-90005)
+│   ├── item_system.lua       # Предметы (entry 90001–91005)
+│   ├── skill_system.lua      # Навыки/профессии (90001–90005)
 │   ├── quest_system.lua      # Универсальный gossip для 11 кампаний
-│   ├── zone_system.lua       # Кастомные зоны и телепорты
-│   └── dungeon_system.lua    # Подземелья campaign 6, 7, 11
+│   ├── zone_system.lua       # Кастомные зоны и точки телепорта
+│   ├── dungeon_system.lua    # Подземелья кампаний 6, 7, 11
+│   ├── solo_system.lua       # Соло-режим: масштабирование сложности под 1 игрока
+│   ├── companion_system.lua  # Компаньоны-боты для соло-игроков
+│   ├── scaling_system.lua    # Масштабирование квестов и мобов под соло
+│   └── solo_dungeon_system.lua  # Соло-подземелья (инстансы)
 └── quests/
-    ├── campaign_01_awakening.lua          (квесты 90101-90103)
-    ├── campaign_02_shadows.lua            (квесты 90201-90204)
-    ├── campaign_03_cursed_feathers.lua    (квесты 90301-90303)
-    ├── campaign_04_blood_moon.lua         (квесты 90401-90404)
-    ├── campaign_05_keepers.lua            (квесты 90501-90503)
-    ├── campaign_06_forgotten_temple.lua   (квесты 90601-90604)
-    ├── campaign_07_seal_of_darkness.lua   (квесты 90701-90703)
-    ├── campaign_08_raven_blade.lua        (квесты 90801-90804)
-    ├── campaign_09_night_watch.lua        (квесты 90901-90903)
-    ├── campaign_10_raven_and_moon.lua     (квесты 91001-91004)
-    └── campaign_11_end_of_night.lua       (квесты 91101-91105)
+    ├── campaign_01..11.lua   # Лут мобов для всех кампаний
+    ├── solo_quests.lua       # Соло-квесты (95001-95002)
+    └── campaign_manager.lua  # (устарело, заменено на module.lua + systems)
 ```
 
-## Как загрузить
+## Соло-режим (одиночное прохождение MMORPG)
 
+### Что включает
+1. **Соло-режим** (`solo_system.lua`) — включение/выключение через gossip NPC "Темный Ворон". Мобы вокруг соло-игрока получают `-40% HP` и `-30% урона`.
+2. **Компаньоны** (`companion_system.lua`) — 3 спутника: Теневой Врон (урон), Страж Ночи (танк), Целитель Лунный (хил). Призываются через квест 95002.
+3. **Масштабирование квестов** (`scaling_system.lua`) — соло-игроку нужно собирать меньше предметов квеста (коэффициент 0.5–0.9 от уровня).
+4. **Соло-подземелья** (`solo_dungeon_system.lua`) — 3 инстанса для одного игрока (уровни 10–80).
+5. **Соло-квесты** (`solo_quests.lua`) — квесты 95001 ("Испытание Одиночества") и 95002 ("Путник Теней") с наградой компаньона и кольца.
+
+### Как включить соло-режим
+1. Подойдите к NPC "Темный Ворон" (entry 90001).
+2. Выберите gossip "Включить соло-режим".
+3. Сложность мобов рядом адаптируется автоматически.
+
+### Подключение
 1. Убедитесь, что AzerothCore собран с поддержкой Lua/Eluna.
 2. Положите папку `NightDarkRaven/` в директорию скриптов сервера (обычно `ac-server/luaship/`).
 3. В `worldserver.conf` укажите путь:
    ```
    LuaEventPath = ../luaship/NightDarkRaven
    ```
-   либо загрузите `init.lua` через механизм скриптов вашей сборки Eluna.
 
 ## База данных
 
@@ -48,8 +56,8 @@ server/luaship/NightDarkRaven/
 ## Аутентификация
 
 Конфиги в `server/conf/`:
-- `authserver.conf.dist` — настройки AuthServer (порт 3724, подключение к БД `auth`)
-- `worldserver.conf.dist` — настройки WorldServer (порт 8090, БД `world`/`characters`)
+- `authserver.conf.dist` — AuthServer (порт 3724, БД `auth`)
+- `worldserver.conf.dist` — WorldServer (порт 8090, БД `world`/`characters`)
 
 Скопируйте `.dist` файлы без расширения и отредактируйте пароли к MySQL.
 

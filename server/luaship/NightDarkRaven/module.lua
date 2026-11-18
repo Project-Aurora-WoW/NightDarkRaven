@@ -1,18 +1,22 @@
 -- ============================================================================
 -- Ночь темного Ворона — Основной модуль AzerothCore (Lua / Eluna)
--- Регистрирует все подсистемы: предметы, навыки, кампании, зоны, подземелья
+-- Регистрирует все подсистемы: предметы, навыки, кампании, зоны, подземелья, соло
 -- ============================================================================
 
 NightDarkRaven = {}
-NightDarkRaven.Version = "1.0.0"
+NightDarkRaven.Version = "1.1.0"
 NightDarkRaven.ModuleName = "NightDarkRaven"
 
--- Подсистемы
+-- Подсистемы (порядок важен: зависимости)
 local ItemSystem   = require("NightDarkRaven.systems.item_system")
 local SkillSystem  = require("NightDarkRaven.systems.skill_system")
 local QuestSystem  = require("NightDarkRaven.systems.quest_system")
 local ZoneSystem   = require("NightDarkRaven.systems.zone_system")
 local DungeonSystem= require("NightDarkRaven.systems.dungeon_system")
+local SoloSystem   = require("NightDarkRaven.systems.solo_system")
+local CompanionSystem = require("NightDarkRaven.systems.companion_system")
+local ScalingSystem= require("NightDarkRaven.systems.scaling_system")
+local SoloDungeonSystem = require("NightDarkRaven.systems.solo_dungeon_system")
 
 function NightDarkRaven.OnLoad()
     print("|cff4B0082[NightDarkRaven]|r Загрузка модуля v" .. NightDarkRaven.Version .. "...")
@@ -22,6 +26,10 @@ function NightDarkRaven.OnLoad()
     QuestSystem.Init()
     ZoneSystem.Init()
     DungeonSystem.Init()
+    SoloSystem.Init()
+    CompanionSystem.Init()
+    ScalingSystem.Init()
+    SoloDungeonSystem.Init()
 
     print("|cff4B0082[NightDarkRaven]|r Модуль загружен успешно.")
 end

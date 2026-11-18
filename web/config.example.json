@@ -1,0 +1,33 @@
+{
+  "server": {
+    "port": 3000,
+    "host": "0.0.0.0"
+  },
+  "databases": {
+    "auth": {
+      "host": "127.0.0.1",
+      "port": 3306,
+      "user": "root",
+      "password": "",
+      "database": "auth"
+    },
+    "characters": {
+      "host": "127.0.0.1",
+      "port": 3306,
+      "user": "root",
+      "password": "",
+      "database": "characters"
+    },
+    "world": {
+      "host": "127.0.0.1",
+      "port": 3306,
+      "user": "root",
+      "password": "",
+      "database": "world"
+    }
+  },
+  "security": {
+    "corsOrigin": "http://localhost:3000",
+    "sessionSecret": "night-dark-raven-secret-change-me"
+  }
+}
