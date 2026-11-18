@@ -1,10 +1,20 @@
 -- ============================================================================
-Ночь темного Ворона — 11 кампаний: Квесты
+Ночь темного Ворона — 11 кампаний + соло: Квесты (полноценные)
 -- База: world (AzerothCore 3.3.5a)
--- Quest range: 90101 - 91105 (кампании 1-11)
+-- Quest range: 90101-91105 (кампании), 95001-95002 (соло)
 -- ============================================================================
 
 USE world;
+
+-- --------------------------------------------------------
+-- Очистка старых данных (опционально, раскомментировать при необходимости)
+-- --------------------------------------------------------
+-- DELETE FROM `quest_template` WHERE `entry` BETWEEN 90101 AND 91105;
+-- DELETE FROM `quest_template` WHERE `entry` BETWEEN 95001 AND 95002;
+-- DELETE FROM `creature_queststarter` WHERE `quest` BETWEEN 90101 AND 91105;
+-- DELETE FROM `creature_queststarter` WHERE `quest` BETWEEN 95001 AND 95002;
+-- DELETE FROM `creature_questender` WHERE `quest` BETWEEN 90101 AND 91105;
+-- DELETE FROM `creature_questender` WHERE `quest` BETWEEN 95001 AND 95002;
 
 -- --------------------------------------------------------
 -- Кампания 1: Пробуждение Ворона (quests 90101-90103)
@@ -26,9 +36,8 @@ INSERT INTO `quest_template` (
  'Вы хорошо поработали. Вот ваша награда.',
  'Принесите перья Стражнику Ночи.',
  'Спасибо за помощь. Ворон благословляет ваш путь.',
- 'Выполнено.',
  'Перья Теневой Совы: 5/5', NULL, NULL, NULL,
- 90001, 0, 0, 0, 5, 0, 0, 0, 500000),
+ 90001, 0, 0, 0, 1, 0, 0, 0, 500000),
 (90102, 0, 1101, 1023, 10, 1, 11, 0, 0, 90103, 0,
  'Теневые Следы',
  'Найдите и уничтожьте Темных Последователей около лагеря.',
@@ -37,7 +46,7 @@ INSERT INTO `quest_template` (
  'Принесите доказательства Стражнику Ночи.',
  'Вы защитили порог Ночи.',
  'Темных Последователей убито: 8/8', NULL, NULL, NULL,
- 90003, 0, 0, 0, 3, 0, 0, 0, 750000),
+ 90003, 0, 0, 0, 1, 0, 0, 0, 750000),
 (90103, 0, 1101, 1023, 11, 1, 12, 0, 0, 90201, 90102,
  'Свет в Тьме',
  'Добудьте Светящийся камешек из развалин.',
@@ -46,12 +55,10 @@ INSERT INTO `quest_template` (
  'Отнесите камешки Стражнику Ночи.',
  'Путь к Вороновой Горе открыт.',
  'Светящихся камешков: 3/3', NULL, NULL, NULL,
- 90004, 0, 0, 0, 3, 0, 0, 0, 1000000);
+ 90004, 0, 0, 0, 1, 0, 0, 0, 1000000);
 
--- creature_queststarter / questender для кампании 1
 INSERT INTO `creature_queststarter` (`id`, `quest`) VALUES
 (90010, 90101), (90010, 90102), (90010, 90103);
-
 INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 (90010, 90101), (90010, 90102), (90010, 90103);
 
@@ -59,7 +66,15 @@ INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 -- Кампания 2: Тени Вороновой Горы (quests 90201-90204)
 -- Дачитель: Старшина Ворона (90020)
 -- --------------------------------------------------------
-INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`, `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`, `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`, `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`, `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`, `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`, `RewardMoney`) VALUES
+INSERT INTO `quest_template` (
+    `entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`,
+    `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`,
+    `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`,
+    `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`,
+    `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`,
+    `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`,
+    `RewardMoney`
+) VALUES
 (90201, 0, 1101, 1023, 20, 1, 20, 0, 0, 90202, 0,
  'Тени Горы',
  'Старшина Ворона просит очистить склоны от горных волков.',
@@ -68,7 +83,7 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
  'Принесите шкуры волков Старшине Ворона.',
  'Горы снова безопасны.',
  'Горных волков убито: 10/10', NULL, NULL, NULL,
- 90021, 0, 0, 0, 5, 0, 0, 0, 2000000),
+ 90021, 0, 0, 0, 1, 0, 0, 0, 2000000),
 (90202, 0, 1101, 1023, 21, 1, 21, 0, 0, 90203, 0,
  'Камень Гряд',
  'Соберите Камни Гряд из завалов Вороновой Горы.',
@@ -77,10 +92,10 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
  'Отнесите камни Старшине Ворона.',
  'Основание горы укреплено.',
  'Камней Гряд: 6/6', NULL, NULL, NULL,
- 90022, 0, 0, 0, 6, 0, 0, 0, 2200000),
+ 90022, 0, 0, 0, 1, 0, 0, 0, 2200000),
 (90203, 0, 1101, 1023, 22, 1, 22, 0, 0, 90204, 0,
  'Гаргулья из Камня',
- 'Убейте Каменного Гаргулью и заберите его перо.',
+ 'Убейте Каменного Гаргулья и заберите его перо.',
  'Убейте 1 Каменного Гаргулью.',
  'Перо гаргулья получено. Вернитесь к Старшине.',
  'Принесите перо Старшине Ворона.',
@@ -99,7 +114,6 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
 
 INSERT INTO `creature_queststarter` (`id`, `quest`) VALUES
 (90020, 90201), (90020, 90202), (90020, 90203), (90020, 90204);
-
 INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 (90020, 90201), (90020, 90202), (90020, 90203), (90020, 90204);
 
@@ -107,7 +121,15 @@ INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 -- Кампания 3: Проклятие Перьев (quests 90301-90303)
 -- Дачитель: Друид Теней (90030)
 -- --------------------------------------------------------
-INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`, `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`, `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`, `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`, `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`, `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`, `RewardMoney`) VALUES
+INSERT INTO `quest_template` (
+    `entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`,
+    `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`,
+    `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`,
+    `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`,
+    `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`,
+    `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`,
+    `RewardMoney`
+) VALUES
 (90301, 0, 1101, 1023, 30, 1, 30, 0, 0, 90302, 0,
  'Проклятое Перо',
  'Друид Теней просит собрать Проклятые Перья у Теневых Оборотней.',
@@ -116,7 +138,7 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
  'Принесите перья Друиду Теней.',
  'Проклятие ослаблено.',
  'Проклятых перьев: 8/8', NULL, NULL, NULL,
- 90031, 0, 0, 0, 8, 0, 0, 0, 3500000),
+ 90031, 0, 0, 0, 1, 0, 0, 0, 3500000),
 (90302, 0, 1101, 1023, 31, 1, 31, 0, 0, 90303, 0,
  'Амулет Друида',
  'Найдите Амулет Друида в руинах рядом с лагерем оборотней.',
@@ -134,11 +156,10 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
  'Принесите Слезы Леса Друиду Теней.',
  'Проклятие снято с леса.',
  'Слез Леса: 4/4', NULL, NULL, NULL,
- 90033, 0, 0, 0, 4, 0, 0, 0, 4500000);
+ 90033, 0, 0, 0, 1, 0, 0, 0, 4500000);
 
 INSERT INTO `creature_queststarter` (`id`, `quest`) VALUES
 (90030, 90301), (90030, 90302), (90030, 90303);
-
 INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 (90030, 90301), (90030, 90302), (90030, 90303);
 
@@ -146,7 +167,15 @@ INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 -- Кампания 4: Кровавая Луна (quests 90401-90404)
 -- Дачитель: Жрица Луны (90040)
 -- --------------------------------------------------------
-INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`, `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`, `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`, `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`, `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`, `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`, `RewardMoney`) VALUES
+INSERT INTO `quest_template` (
+    `entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`,
+    `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`,
+    `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`,
+    `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`,
+    `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`,
+    `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`,
+    `RewardMoney`
+) VALUES
 (90401, 0, 1101, 1023, 40, 1, 40, 0, 0, 90402, 0,
  'Кровавый Клык',
  'Жрица Луны просит собрать Кровавые Клыки у Кровавых Волков.',
@@ -155,7 +184,7 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
  'Принесите клыки Жрице Луны.',
  'Луна очищена от крови.',
  'Кровавых клыков: 6/6', NULL, NULL, NULL,
- 90041, 0, 0, 0, 6, 0, 0, 0, 5000000),
+ 90041, 0, 0, 0, 1, 0, 0, 0, 5000000),
 (90402, 0, 1101, 1023, 41, 1, 41, 0, 0, 90403, 0,
  'Песнь Луны',
  'Найдите запись древней Песни Луны в храме ночи.',
@@ -186,7 +215,6 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
 
 INSERT INTO `creature_queststarter` (`id`, `quest`) VALUES
 (90040, 90401), (90040, 90402), (90040, 90403), (90040, 90404);
-
 INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 (90040, 90401), (90040, 90402), (90040, 90403), (90040, 90404);
 
@@ -194,7 +222,15 @@ INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 -- Кампания 5: Хранители Ночи (quests 90501-90503)
 -- Дачитель: Верховный Хранитель (90050)
 -- --------------------------------------------------------
-INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`, `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`, `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`, `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`, `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`, `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`, `RewardMoney`) VALUES
+INSERT INTO `quest_template` (
+    `entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`,
+    `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`,
+    `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`,
+    `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`,
+    `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`,
+    `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`,
+    `RewardMoney`
+) VALUES
 (90501, 0, 1101, 1023, 50, 1, 50, 0, 0, 90502, 0,
  'Печать Хранителя',
  'Верховный Хранитель просит доставить Печать Хранителя.',
@@ -212,7 +248,7 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
  'Принесите масло Верховному Хранителю.',
  'Ритуалы хранителей продолжаются.',
  'Масла Теней: 4/4', NULL, NULL, NULL,
- 90052, 0, 0, 0, 4, 0, 0, 0, 7500000),
+ 90052, 0, 0, 0, 1, 0, 0, 0, 7500000),
 (90503, 0, 1101, 1023, 52, 1, 52, 0, 0, 90601, 90502,
  'Медальон Ночи',
  'Найдите Медальон Ночи в trésorе хранителей.',
@@ -225,7 +261,6 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
 
 INSERT INTO `creature_queststarter` (`id`, `quest`) VALUES
 (90050, 90501), (90050, 90502), (90050, 90503);
-
 INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 (90050, 90501), (90050, 90502), (90050, 90503);
 
@@ -233,7 +268,15 @@ INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 -- Кампания 6: Забытый Храм (quests 90601-90604)
 -- Дачитель: Хранитель Храма (90060)
 -- --------------------------------------------------------
-INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`, `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`, `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`, `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`, `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`, `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`, `RewardMoney`) VALUES
+INSERT INTO `quest_template` (
+    `entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`,
+    `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`,
+    `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`,
+    `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`,
+    `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`,
+    `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`,
+    `RewardMoney`
+) VALUES
 (90601, 0, 1101, 1023, 60, 1, 60, 0, 0, 90602, 0,
  'Разрушенные Скрижали',
  'Хранитель Храма просит собрать фрагменты скрижали.',
@@ -242,7 +285,7 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
  'Принесите фрагменты Хранителю Храма.',
  'История храма восстановлена.',
  'Фрагментов скрижали: 5/5', NULL, NULL, NULL,
- 90061, 0, 0, 0, 5, 0, 0, 0, 8500000),
+ 90061, 0, 0, 0, 1, 0, 0, 0, 8500000),
 (90602, 0, 1101, 1023, 61, 1, 61, 0, 0, 90603, 0,
  'Пыль Костей',
  'Соберите Пыль Костей у скелетных жрецов.',
@@ -251,7 +294,7 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
  'Принесите Пыль Костей Хранителю Храма.',
  'Жрецы упокоены.',
  'Пыли Костей: 8/8', NULL, NULL, NULL,
- 90062, 0, 0, 0, 8, 0, 0, 0, 9000000),
+ 90062, 0, 0, 0, 1, 0, 0, 0, 9000000),
 (90603, 0, 1101, 1023, 62, 1, 62, 0, 0, 90604, 0,
  'Ключ Храма',
  'Найдите Ключ Храма у Проклятого Стража.',
@@ -273,7 +316,6 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
 
 INSERT INTO `creature_queststarter` (`id`, `quest`) VALUES
 (90060, 90601), (90060, 90602), (90060, 90603), (90060, 90604);
-
 INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 (90060, 90601), (90060, 90602), (90060, 90603), (90060, 90604);
 
@@ -281,7 +323,15 @@ INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 -- Кампания 7: Печать Тьмы (quests 90701-90703)
 -- Дачитель: Маг Пустоты (90070)
 -- --------------------------------------------------------
-INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`, `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`, `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`, `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`, `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`, `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`, `RewardMoney`) VALUES
+INSERT INTO `quest_template` (
+    `entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`,
+    `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`,
+    `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`,
+    `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`,
+    `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`,
+    `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`,
+    `RewardMoney`
+) VALUES
 (90701, 0, 1101, 1023, 70, 1, 70, 0, 0, 90702, 0,
  'Осколок Пустоты',
  'Маг Пустоты просит собрать Осколки Пустоты у демонов.',
@@ -290,7 +340,7 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
  'Принесите осколки Магу Пустоты.',
  'Пустотное energie под контролем.',
  'Осколков Пустоты: 4/4', NULL, NULL, NULL,
- 90071, 0, 0, 0, 4, 0, 0, 0, 10500000),
+ 90071, 0, 0, 0, 1, 0, 0, 0, 10500000),
 (90702, 0, 1101, 1023, 71, 1, 71, 0, 0, 90703, 0,
  'Кровь Демона',
  'Соберите Кровь Демона у Демонов Тени.',
@@ -299,7 +349,7 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
  'Принесите кровь Магу Пустоты.',
  'Ритуал завершен.',
  'Крови Демона: 6/6', NULL, NULL, NULL,
- 90072, 0, 0, 0, 6, 0, 0, 0, 11000000),
+ 90072, 0, 0, 0, 1, 0, 0, 0, 11000000),
 (90703, 0, 1101, 1023, 72, 1, 72, 0, 0, 90801, 90702,
  'Руна Печати',
  'Найдите Руну Печати в логове Стража Печати.',
@@ -312,7 +362,6 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
 
 INSERT INTO `creature_queststarter` (`id`, `quest`) VALUES
 (90070, 90701), (90070, 90702), (90070, 90703);
-
 INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 (90070, 90701), (90070, 90702), (90070, 90703);
 
@@ -320,7 +369,15 @@ INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 -- Кампания 8: Вороновой Клинок (quests 90801-90804)
 -- Дачитель: Кузнец Теней (90080)
 -- --------------------------------------------------------
-INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`, `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`, `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`, `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`, `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`, `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`, `RewardMoney`) VALUES
+INSERT INTO `quest_template` (
+    `entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`,
+    `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`,
+    `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`,
+    `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`,
+    `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`,
+    `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`,
+    `RewardMoney`
+) VALUES
 (90801, 0, 1101, 1023, 75, 1, 75, 0, 0, 90802, 0,
  'Клинок Ворона',
  'Кузнец Теней просит помочь ковать Клинок Ворона.',
@@ -338,7 +395,7 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
  'Принесите искры Кузнецу Теней.',
  'Огонь в клинке зажжен.',
  'Искр Огня: 3/3', NULL, NULL, NULL,
- 90082, 0, 0, 0, 3, 0, 0, 0, 12500000),
+ 90082, 0, 0, 0, 1, 0, 0, 0, 12500000),
 (90803, 0, 1101, 1023, 77, 1, 77, 0, 0, 90804, 0,
  'Тень Ворона',
  'Убейте Тень Ворона и заберите его суть.',
@@ -360,7 +417,6 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
 
 INSERT INTO `creature_queststarter` (`id`, `quest`) VALUES
 (90080, 90801), (90080, 90802), (90080, 90803), (90080, 90804);
-
 INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 (90080, 90801), (90080, 90802), (90080, 90803), (90080, 90804);
 
@@ -368,7 +424,15 @@ INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 -- Кампания 9: Ночной Дозор (quests 90901-90903)
 -- Дачитель: Капитан Дозора (90090)
 -- --------------------------------------------------------
-INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`, `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`, `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`, `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`, `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`, `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`, `RewardMoney`) VALUES
+INSERT INTO `quest_template` (
+    `entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`,
+    `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`,
+    `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`,
+    `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`,
+    `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`,
+    `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`,
+    `RewardMoney`
+) VALUES
 (90901, 0, 1101, 1023, 78, 1, 78, 0, 0, 90902, 0,
  'Знак Дозора',
  'Капитан Дозора просит доставить Знак Дозора от Разведчика.',
@@ -395,11 +459,10 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
  'Расскажите Капитану о зачистке.',
  'Границы безопасны.',
  'Ночных хищников убито: 10/10', NULL, NULL, NULL,
- 90093, 0, 0, 0, 5, 0, 0, 0, 16500000);
+ 90093, 0, 0, 0, 1, 0, 0, 0, 16500000);
 
 INSERT INTO `creature_queststarter` (`id`, `quest`) VALUES
 (90090, 90901), (90090, 90902), (90090, 90903);
-
 INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 (90090, 90901), (90090, 90902), (90090, 90903);
 
@@ -407,7 +470,15 @@ INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 -- Кампания 10: Ворон и Луна (quests 91001-91004)
 -- Дачитель: Оракул Луны (90100)
 -- --------------------------------------------------------
-INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`, `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`, `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`, `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`, `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`, `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`, `RewardMoney`) VALUES
+INSERT INTO `quest_template` (
+    `entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`,
+    `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`,
+    `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`,
+    `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`,
+    `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`,
+    `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`,
+    `RewardMoney`
+) VALUES
 (91001, 0, 1101, 1023, 80, 1, 80, 0, 0, 91002, 0,
  'Слёза Луны',
  'Оракул Луны просит собрать Слёзы Луны.',
@@ -416,7 +487,7 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
  'Принесите слёзы Оракулу Луны.',
  'Луна плачет от радости.',
  'Слез Луны: 2/2', NULL, NULL, NULL,
- 90101, 0, 0, 0, 2, 0, 0, 0, 17000000),
+ 90101, 0, 0, 0, 1, 0, 0, 0, 17000000),
 (91002, 0, 1101, 1023, 81, 1, 81, 0, 0, 91003, 0,
  'Клык Луноstalker',
  'Соберите Клыки Луноstalker у лунохищников.',
@@ -425,7 +496,7 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
  'Принесите клыки Оракулу Луны.',
  'Охота открыта.',
  'Клыков Луноstalker: 4/4', NULL, NULL, NULL,
- 90102, 0, 0, 0, 4, 0, 0, 0, 17500000),
+ 90102, 0, 0, 0, 1, 0, 0, 0, 17500000),
 (91003, 0, 1101, 1023, 82, 1, 82, 0, 0, 91004, 0,
  'Перо Аспекта Ворона',
  'Добудьте Перо Аспекта Ворона у могущественного существа.',
@@ -447,7 +518,6 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
 
 INSERT INTO `creature_queststarter` (`id`, `quest`) VALUES
 (90100, 91001), (90100, 91002), (90100, 91003), (90100, 91004);
-
 INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 (90100, 91001), (90100, 91002), (90100, 91003), (90100, 91004);
 
@@ -455,7 +525,15 @@ INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 -- Кампания 11: Конец Ночи (quests 91101-91105)
 -- Дачитель: Темный Ворон (90110) / финал
 -- --------------------------------------------------------
-INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`, `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`, `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`, `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`, `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`, `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`, `RewardMoney`) VALUES
+INSERT INTO `quest_template` (
+    `entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`,
+    `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`,
+    `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`,
+    `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`,
+    `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`,
+    `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`,
+    `RewardMoney`
+) VALUES
 (91101, 0, 1101, 1023, 80, 1, 80, 0, 0, 91102, 0,
  'Посланник Тьмы',
  'Темный Ворон просит устранить Посланника Тьмы.',
@@ -504,8 +582,44 @@ INSERT INTO `quest_template` (`entry`, `Method`, `RaceMask`, `ClassMask`, `MinLe
 
 INSERT INTO `creature_queststarter` (`id`, `quest`) VALUES
 (90110, 91101), (90110, 91102), (90110, 91103), (90110, 91104), (90110, 91105);
-
 INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 (90110, 91101), (90110, 91102), (90110, 91103), (90110, 91104), (90110, 91105);
 
-SELECT 'Campaign quests inserted (90101-91105)' AS info;
+-- --------------------------------------------------------
+-- Соло-квесты (quests 95001-95002)
+-- Дачитель: Темный Ворон (90001)
+-- --------------------------------------------------------
+INSERT INTO `quest_template` (
+    `entry`, `Method`, `RaceMask`, `ClassMask`, `MinLevel`, `SuggestedPlayers`, `QuestLevel`, `Type`, `Flags`,
+    `NextQuestId`, `NextQuestInChain`, `Title`, `Details`, `Objectives`,
+    `OfferRewardText`, `RequestItemsText`, `EndText`, `CompletedText`,
+    `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`,
+    `RewardItemId1`, `RewardItemId2`, `RewardItemId3`, `RewardItemId4`,
+    `RewardItemCount1`, `RewardItemCount2`, `RewardItemCount3`, `RewardItemCount4`,
+    `RewardMoney`
+) VALUES
+(95001, 0, 1101, 1023, 10, 1, 10, 0, 0, 95002, 0,
+ 'Испытание Одиночества',
+ 'Темный Ворон предлагает пройти путь Ворона в одиночку, без группы.',
+ 'Пройдите соло-режим и выполните любые 3 квеста кампании 1.',
+ 'Вы достоин称号 Ночного Ворона. Прими это кольцо.',
+ 'Вернитесь к Темному Ворону после прохождения.',
+ 'Испытание пройдено в одиночку.',
+ 'Испытание Одиночества: 1/1', NULL, NULL, NULL,
+ 91001, 0, 0, 0, 1, 0, 0, 0, 5000000),
+(95002, 0, 1101, 1023, 15, 1, 15, 0, 0, 0, 95001,
+ 'Путник Теней',
+ 'Приручи Теневого Ворона — он станет твоим компаньоном в соло.',
+ 'Поговори с Темным Вороном о компаньоне.',
+ 'Теневой Ворон теперь с тобой.',
+ 'Вернитесь к Темному Ворону.',
+ 'Теневой Ворон станет твоим спутником.',
+ 'Компаньон приручен: 1/1', NULL, NULL, NULL,
+ 0, 0, 0, 0, 0, 0, 0, 0, 3000000);
+
+INSERT INTO `creature_queststarter` (`id`, `quest`) VALUES
+(90001, 95001), (90001, 95002);
+INSERT INTO `creature_questender` (`id`, `quest`) VALUES
+(90001, 95001), (90001, 95002);
+
+SELECT 'Campaign + solo quests inserted (90101-91105, 95001-95002)' AS info;

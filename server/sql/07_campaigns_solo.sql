@@ -1,7 +1,8 @@
 -- ============================================================================
-Ночь темного Ворона — Соло-контент (компаньоны, соло-квесты, соло-предметы)
+Ночь темного Ворона — Соло-контент (предметы, соло-квесты)
 -- База: world (AzerothCore 3.3.5a)
--- Entry range: 91001-91005 (предметы), 92001-92003 (компаньоны), 95001-95002 (квесты)
+-- Entry range: 91001-91005 (предметы), 95001-95002 (квесты)
+-- Мобы компаньонов 92001-92003 находятся в 02_campaigns_creatures.sql
 -- ============================================================================
 
 USE world;
@@ -17,22 +18,7 @@ INSERT INTO `item_template` (`entry`, `name`, `displayid`, `Quality`, `Flags`, `
 (91005, 'Наручи Ворона', 1, 3, 0, 0, 1500, 0, 0, 0, 1, 1, 'Наручи Ночного Ворона.');
 
 -- --------------------------------------------------------
--- 2. Компаньоны для соло-игроков (NPC)
--- --------------------------------------------------------
--- Теневой Ворон (урон)
-INSERT INTO `creature_template` (`entry`, `name`, `subname`, `minlevel`, `maxlevel`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `scale`, `unit_class`, `unit_flags`, `type`, `type_flags`, `Rank`, `dmg_min`, `dmg_max`, `base_attack_time`) VALUES
-(92001, 'Теневой Ворон', 'Компаньон', 1, 80, 35, 0, 1.0, 3.5, 0.8, 1, 0, 7, 138936390, 0, 50, 100, 2000);
-
--- Страж Ночи (танк)
-INSERT INTO `creature_template` (`entry`, `name`, `subname`, `minlevel`, `maxlevel`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `scale`, `unit_class`, `unit_flags`, `type`, `type_flags`, `Rank`, `dmg_min`, `dmg_max`, `base_attack_time`) VALUES
-(92002, 'Страж Ночи', 'Компаньон', 1, 80, 35, 0, 1.0, 2.5, 1.1, 1, 0, 7, 138936390, 1, 40, 80, 2200);
-
--- Целитель Лунный (хил)
-INSERT INTO `creature_template` (`entry`, `name`, `subname`, `minlevel`, `maxlevel`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `scale`, `unit_class`, `unit_flags`, `type`, `type_flags`, `Rank`, `dmg_min`, `dmg_max`, `base_attack_time`) VALUES
-(92003, 'Целитель Лунный', 'Компаньон', 1, 80, 35, 0, 1.0, 2.5, 0.9, 1, 0, 7, 138936390, 0, 30, 60, 2400);
-
--- --------------------------------------------------------
--- 3. Соло-квесты
+-- 2. Соло-квесты
 -- --------------------------------------------------------
 -- 95001 Испытание Одиночества
 INSERT INTO `quest_template` (
@@ -81,4 +67,4 @@ INSERT INTO `creature_queststarter` (`id`, `quest`) VALUES
 INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 (90001, 95001), (90001, 95002);
 
-SELECT 'Solo content inserted (companions, solo quests, solo items)' AS info;
+SELECT 'Solo content inserted (items, solo quests)' AS info;

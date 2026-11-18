@@ -15,7 +15,7 @@ SoloWebSync._processedGuids = {} -- [guid] = timestamp последней обр
 -- Функция применения соло-режима к игроку (вызывается из quest_system при gossip)
 function SoloWebSync.ApplySoloMode(player, enable)
     local guid = player:GetGUIDLow()
-    local accountId = player:GetAccountId() -- если API поддерживает, иначе 0
+    local accountId = 0
 
     if enable then
         SoloSystem.EnableSoloMode(player)
@@ -55,7 +55,7 @@ end
 -- Проверка: нужно ли применить соло-режим при входе игрока в мир
 function SoloWebSync.OnPlayerLogin(event, player)
     local guid = player:GetGUIDLow()
-    local accountId = player:GetAccountId() or 0
+    local accountId = 0
 
     local query = string.format(
         "SELECT solo_mode, companion_entry FROM solo_state WHERE character_guid = %d LIMIT 1",
