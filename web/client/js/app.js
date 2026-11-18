@@ -54,6 +54,9 @@ const app = {
             this.loadAdminSolo();
             this.loadAdminLogs();
         }
+        if (section === 'campaigns-admin') {
+            this.loadCampaigns();
+        }
     },
 
     async login() {
@@ -317,6 +320,62 @@ const app = {
             }).join('') || '<p>Логи пусты</p>';
         } catch (e) {
             el.innerHTML = `<p style="color:#f87171">${e.message}</p>`;
+        }
+    },
+
+    // Управление кампаниями
+    async loadCampaigns() {
+        const el = document.getElementById('campaignsList');
+        el.innerHTML = 'Загрузка кампаний...';
+        try {
+            const result = await api.getCampaigns();
+            const campaigns = result.campaigns || [];
+            el.innerHTML = campaigns.map(c => `
+                <div class="campaign-card" style="padding:0.75rem; margin-bottom:0.5rem;">
+                    <div style="flex:1;">
+                        <strong style="color:var(--accent-glow)">Кампания ${c.id}: ${c.name}</strong>
+                        <br><small style="color:var(--text-muted);">NPC дачитель: #${c.npcId}</small>
+                    </div>
+                    <div style="text-align:right; font-size:0.85rem;">
+                        ${c.quests.length} квестов
+                    </div>
+                    <div style="margin-top:0.5rem;">
+                        ${c.quests.map(q => `
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.3rem 0; border-bottom:1px solid var(--border); font-size:0.9rem;">
+                                <span>#${q.entry} ${q.title}</span>
+                                <span style="color:${q.flags & 0x0001 ? '#4ade80' : '#94a3b8'}">
+                                    ${q.flags & 0x0001 ? 'АКТИВЕН' : 'выключен'}
+                                </span>
+                                <span style="color:var(--text-muted);">ур. ${q.level}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('') || '<p>Кампании не найдены</p>';
+        } catch (e) {
+            el.innerHTML = `<p style="color:#f87171">${e.message}</p>`;
+        }
+    },
+
+    async adminToggleQuest() {
+        const questId = document.getElementById('adminQuestId').value;
+        const enable = document.getElementById('adminQuestEnabled').checked;
+        const msgEl = document.getElementById('adminQuestMessage');
+
+        if (!questId) {
+            msgEl.textContent = 'Укажите ID квеста';
+            msgEl.style.color = '#f87171';
+            return;
+        }
+
+        try {
+            const result = await api.toggleCampaignQuest(parseInt(questId), enable);
+            msgEl.textContent = result.message;
+            msgEl.style.color = '#4ade80';
+            this.loadCampaigns();
+        } catch (e) {
+            msgEl.textContent = 'Ошибка: ' + e.message;
+            msgEl.style.color = '#f87171';
         }
     }
 };

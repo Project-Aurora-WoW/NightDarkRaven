@@ -1,35 +1,48 @@
 # Лаунчер «Ночь темного Ворона» для WoW 3.3.5a
 
-Лаунчер патчит `realmlist.wtf` клиента WoW 3.3.5a и запускает игру с подключением к серверу AzerothCore.
+Варианты лаунчеров:
 
-## Состав
+| Вариант | Папка | Описание |
+|---------|-------|----------|
+| Десктоп (Windows) | `launcher/` | `launcher.bat` / `launcher.ps1` — патчит `realmlist.wtf` и запускает `WoW.exe` |
+| Мобильный (PWA) | `launcher/mobile/` | `index.html` + `manifest.json` + `sw.js` — мобильный веб-лаунчер, устанавливается на домашний экран |
+| Python | `launcher/patch_realmlist.py` | Кросс-платформенный патч `realmlist.wtf` |
 
-| Файл | Описание |
-|------|----------|
-| `launcher.bat` | Batch-лаунчер (Windows) |
-| `launcher.ps1` | PowerShell-лаунчер (Windows) |
-| `config.json` | Конфигурация лаунчера |
-| `patch_realmlist.py` | Python-скрипт для патча realmlist.wtf |
+## Десктоп-лаунчер (Windows)
 
-## Быстрый запуск (Windows)
-
-1. Отредактируйте `launcher/config.json` — укажите путь к папке с WoW 3.3.5a и адрес сервера.
-2. Запустите `launcher.bat` или `launcher.ps1`.
-
-## Пример config.json
-
+Отредактируйте `launcher/config.json`:
 ```json
 {
   "wowPath": "C:\\Program Files\\World of Warcraft",
   "realmlist": "127.0.0.1",
-  "webUrl": "http://localhost:3000",
-  "launcherTitle": "Ночь темного Ворона — Лаунчер"
+  "webUrl": "http://localhost:3000"
 }
 ```
 
-## Как работает
+Запустите `launcher.bat` или `launcher.ps1`.
 
-1. Читает `config.json` (путь к WoW, адрес реалма).
-2. Перезаписывает `WTF/realmlist.wtf` в папке с WoW.
-3. Запускает `WoW.exe`.
-4. Опционально открывает веб-клиент в браузере для управления аккаунтом.
+## Мобильный лаунчер (PWA, Android/iOS)
+
+Папка `launcher/mobile/` — готовый PWA-лаунчер:
+- `index.html` — интерфейс запуска WoW и веб-клиента
+- `style.css` — мобильные стили (фэнтези-оформление)
+- `app.js` — логика: патч realmlist, запуск WoW, открытие веб-клиента
+- `manifest.json` — манифест для установки на домашний экран
+- `sw.js` — Service Worker для офлайн-режима
+
+### Установка на Android
+1. Откройте `launcher/mobile/index.html` в Chrome на Android.
+2. Меню → «Добавить на главный экран».
+3. Лаунчер появится как отдельное приложение.
+
+### Интеграция с Android WebView (опционально)
+Для полноценной работы (прямой запуск WoW с телефона) потребуется Android-приложение с WebView и JS-интерфейсом `AndroidLauncher` с методами:
+- `patchRealmlist(realm, path)`
+- `launchWow(path, realm)`
+- `openUrl(url)`
+
+### Python-патч (кроссплатформа)
+```bash
+python launcher/patch_realmlist.py
+```
+Отредактируйте `launcher/config.json` (укажите `wowPath` и `realmlist`) перед запуском.

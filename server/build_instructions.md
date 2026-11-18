@@ -205,3 +205,51 @@ generate_self_signed.bat    # Windows
   }
 }
 ```
+
+## 15. Управление квестами кампаний (веб)
+
+API `web/server/routes/campaigns.js` позволяет просматривать и редактировать квесты кампаний через веб-интерфейс (`/admin` → «Кампании`):
+- Просмотр всех 11 кампаний с квестами
+- Включение/выключение квеста (флаг `Flags` в `quest_template`)
+- Изменение уровня квеста
+
+Эндпоинты:
+- `GET /api/campaigns` — список кампаний с квестами
+- `GET /api/campaigns/:questId` — детали квеста
+- `POST /api/campaigns/:questId/toggle` — включить/выключить квест
+- `POST /api/campaigns/:questId/level` — изменить уровень квеста
+
+## 16. Автоимпорт SQL (интеграция с БД)
+
+Сервис `web/server/services/sql_import_service.js` импортирует `.sql` файлы из `server/sql/` в базу `world` автоматически.
+
+Настройка в `web/config.json`:
+```json
+{
+  "sqlImport": {
+    "autoImportOnStart": true,
+    "importAll": false
+  }
+}
+```
+
+API:
+- `POST /api/sqlimport/import` — импортировать файлы
+- `GET /api/sqlimport/status` — статус импорта
+- `POST /api/sqlimport/import-file` — импорт одного файла
+
+## 17. Мобильный лаунчер (PWA)
+
+Папка `launcher/mobile/` — мобильный веб-лаунчер для Android/iOS:
+- Устанавливается на домашний экран через браузер
+- Патчит `realmlist.wtf` (через Android WebView API или симуляцию)
+- Запускает `WoW.exe` (через WebView JS-интерфейс)
+- Открывает веб-клиент
+
+Файлы:
+- `index.html` — интерфейс
+- `style.css` — мобильные стили
+- `app.js` — логика запуска
+- `manifest.json` — манифест PWA
+- `sw.js` — Service Worker
+

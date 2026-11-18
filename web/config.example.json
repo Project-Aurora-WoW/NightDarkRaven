@@ -33,6 +33,10 @@
     "webhookUrl": "",
     "enabled": false
   },
+  "sqlImport": {
+    "autoImportOnStart": false,
+    "importAll": false
+  },
   "watcher": {
     "enabled": false,
     "watchDir": "./../../../server/luaship/NightDarkRaven",

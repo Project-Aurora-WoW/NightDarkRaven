@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
+const mysql = require('mysql2/promise');
 const config = require('./config');
 
 const authRoutes = require('./routes/auth');
@@ -16,13 +17,19 @@ const charactersRoutes = require('./routes/characters');
 const worldRoutes = require('./routes/world');
 const soloRoutes = require('./routes/solo');
 const adminRoutes = require('./routes/admin');
+const campaignsRoutes = require('./routes/campaigns');
+const sqlimportRoutes = require('./routes/sqlimport');
 
 const DiscordService = require('./services/discord_service');
 const WatcherService = require('./services/watcher_service');
+const SqlImportService = require('./services/sql_import_service');
 
 const app = express();
 const PORT = config.server.port || 3000;
 const HTTPS_PORT = config.server.httpsPort || 3443;
+
+// Пулы БД
+const worldPool = mysql.createPool(config.databases.world);
 
 // Discord сервис
 const discord = new DiscordService(config.discord.webhookUrl);
@@ -45,6 +52,8 @@ app.use('/api/characters', charactersRoutes);
 app.use('/api/world', worldRoutes);
 app.use('/api/solo', soloRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/campaigns', campaignsRoutes);
+app.use('/api/sqlimport', sqlimportRoutes);
 
 // Главная страница — отдаём веб-клиент
 app.get('/', (req, res) => {
@@ -101,6 +110,28 @@ if (config.watcher && config.watcher.enabled) {
     process.on('SIGINT', () => watcher.stop());
     process.on('SIGTERM', () => watcher.stop());
 }
+
+// SQL Import Service — автоимпорт при старте
+const sqlImport = new SqlImportService(config);
+sqlImport.init(worldPool).then(async () => {
+    if (config.sqlImport && config.sqlImport.autoImportOnStart) {
+        const importAll = config.sqlImport.importAll === true;
+        const results = importAll ? await sqlImport.importAll() : await sqlImport.importNew();
+        console.log(`[SQL Import] Автоимпорт завершен: ${results.length} файлов`);
+    }
+}).catch(err => {
+    console.error('[SQL Import Init]', err.message);
+});
+
+// graceful stop
+process.on('SIGINT', () => {
+    watcher && watcher.stop();
+    process.exit(0);
+});
+process.on('SIGTERM', () => {
+    watcher && watcher.stop();
+    process.exit(0);
+});
 
 if (servers.length === 0) {
     console.error('Не настроен ни один сервер (HTTP/HTTPS).');

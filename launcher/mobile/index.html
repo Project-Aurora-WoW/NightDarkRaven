@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#7b2cbf">
+    <title>Ночь темного Ворона — Лаунчер</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Шапка -->
+        <header class="header">
+            <div class="logo">🌙 NDR Лаунчер</div>
+            <div class="status" id="status">Готов к запуску</div>
+        </header>
+
+        <!-- Контент -->
+        <main class="main">
+            <div class="card">
+                <h2>World of Warcraft 3.3.5a</h2>
+                <p class="subtitle">Ночь темного Ворона — фэнтези MMORPG</p>
+
+                <div class="form-group">
+                    <label>Сервер (realmlist)</label>
+                    <input type="text" id="realmlist" value="127.0.0.1" placeholder="127.0.0.1">
+                </div>
+
+                <div class="form-group">
+                    <label>Путь к WoW (Android: внутренняя память)</label>
+                    <input type="text" id="wowPath" value="/storage/emulated/0/WoW/" placeholder="/storage/emulated/0/WoW/">
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn-primary btn-large" onclick="launcher.launch()">
+                        🚀 Запустить WoW
+                    </button>
+                    <button class="btn btn-secondary btn-large" onclick="launcher.patchRealmlist()">
+                        📝 Обновить realmlist.wtf
+                    </button>
+                    <button class="btn btn-outline btn-large" onclick="launcher.openWebClient()">
+                        🌐 Веб-клиент
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Статус</h2>
+                <div id="log" class="log">Ожидание действий...</div>
+            </div>
+
+            <div class="card">
+                <h2>Информация</h2>
+                <p>Клиент: WoW 3.3.5a (build 12340)</p>
+                <p>Сервер: AzerothCore (TrinityCore-стиль)</p>
+                <p>Модуль: NightDarkRaven v1.1.0</p>
+                <p>Кампании: 11</p>
+            </div>
+        </main>
+
+        <footer class="footer">
+            Ночь темного Ворона · Лаунчер v1.1.0 · PWA
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -94,6 +94,31 @@ const api = {
         return this.request('/admin/logs', { headers: { 'X-GM-Level': '3' } });
     },
 
+    // Кампании API
+    getCampaigns() {
+        return this.request('/campaigns', { headers: { 'X-GM-Level': '3' } });
+    },
+
+    getCampaignQuest(questId) {
+        return this.request(`/campaigns/${questId}`, { headers: { 'X-GM-Level': '3' } });
+    },
+
+    toggleCampaignQuest(questId, enable) {
+        return this.request(`/campaigns/${questId}/toggle`, {
+            method: 'POST',
+            headers: { 'X-GM-Level': '3' },
+            body: JSON.stringify({ enable })
+        });
+    },
+
+    setCampaignQuestLevel(questId, level) {
+        return this.request(`/campaigns/${questId}/level`, {
+            method: 'POST',
+            headers: { 'X-GM-Level': '3' },
+            body: JSON.stringify({ level })
+        });
+    },
+
     companionSelect(characterGuid, companionEntry) {
         return this.request('/solo/companion', {
             method: 'POST',

@@ -22,6 +22,7 @@
             <div class="nav-item" data-section="solo">Соло-режим</div>
             <div class="nav-item" data-section="campaigns">Кампании</div>
             <div class="nav-item" data-section="admin" style="color:#f87171;">Админ</div>
+            <div class="nav-item" data-section="campaigns-admin" style="color:#a78bfa;">Кампании</div>
         </nav>
 
         <!-- Основной контент -->
@@ -113,6 +114,27 @@
                 </div>
                 <div style="margin-top:1rem; font-size:0.8rem; color:var(--text-muted);">
                     Для доступа требуются права GM (заголовок X-GM-Level >= 1).
+                </div>
+            </section>
+
+            <!-- Управление кампаниями -->
+            <section id="section-campaigns-admin" class="section hidden">
+                <h2>⚔️ Управление кампаниями</h2>
+                <div class="card">
+                    <h3>Список кампаний и квестов</h3>
+                    <div id="campaignsList">Загрузка...</div>
+                    <button class="btn btn-secondary" onclick="app.loadCampaigns()">Обновить</button>
+                </div>
+                <div class="card">
+                    <h3>Быстрое действие</h3>
+                    <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                        <input type="number" id="adminQuestId" placeholder="ID квеста" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
+                        <label style="font-size:0.85rem; color:var(--text-muted); margin:0.25rem 0;">
+                            <input type="checkbox" id="adminQuestEnabled" style="margin-right:0.5rem;"> Квест активен
+                        </label>
+                        <button class="btn btn-primary" onclick="app.adminToggleQuest()">Применить</button>
+                        <div id="adminQuestMessage"></div>
+                    </div>
                 </div>
             </section>
         </main>
