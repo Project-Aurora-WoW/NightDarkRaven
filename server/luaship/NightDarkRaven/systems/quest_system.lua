@@ -6,6 +6,7 @@
 local CompanionSystem = require("NightDarkRaven.systems.companion_system")
 local SoloSystem = require("NightDarkRaven.systems.solo_system")
 local SoloDungeonSystem = require("NightDarkRaven.systems.solo_dungeon_system")
+local SkillSystem = require("NightDarkRaven.systems.skill_system")
 
 local QuestSystem = {}
 
@@ -225,7 +226,9 @@ function QuestSystem.GiveQuestReward(player, questId)
     end
     local money = QuestSystem.QuestMoney[questId]
     if money and money > 0 then
-        -- player:ModifyMoney(money) -- если API поддерживает
+        player:ModifyMoney(money)
+        player:SendBroadcastMessage(string.format("|cff4B0082[Ночь темного Ворона]|r Награда: %d золота %d серебра",
+            math.floor(money / 10000), math.floor(money % 10000 / 100)))
     end
 end
 
@@ -275,7 +278,9 @@ function QuestSystem.OnGossipHello(event, player, creature)
     if isTameable then
         local playerSkill = SkillSystem.PlayerGetSkillValue(player, 90005)
         local canTame = playerSkill >= tameTargetInfo.minSkill
-        local alreadyTamed = creature:GetFaction() == 35
+        -- Приручённость проверяем по живому компаньону игрока, а не по faction:
+        -- у приручаемых мобов в БД уже стоит дружелюбная фракция 35.
+        local alreadyTamed = CompanionSystem.GetActiveCompanionEntry(player) == npcEntry
 
         if alreadyTamed then
             player:GossipMenuAddItem(0, "Это существо уже ваш компаньон.", 0, 255)

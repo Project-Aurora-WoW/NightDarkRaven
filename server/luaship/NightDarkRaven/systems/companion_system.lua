@@ -18,6 +18,16 @@ CompanionSystem.Available = {
 -- Активные компаньоны игроков: [playerGUID] = companionCreature
 CompanionSystem.Active = {}
 
+-- Выдать entry активного компаньона игрока (nil, если компаньона нет)
+function CompanionSystem.GetActiveCompanionEntry(player)
+    local guid = player:GetGUIDLow()
+    local comp = CompanionSystem.Active[guid]
+    if comp and comp:IsInWorld() then
+        return comp:GetEntry()
+    end
+    return nil
+end
+
 -- Призвать компаньона (через навык приручения или квест)
 function CompanionSystem.SpawnCompanion(player, companionEntry)
     local guid = player:GetGUIDLow()
@@ -41,24 +51,31 @@ function CompanionSystem.SpawnCompanion(player, companionEntry)
     end
 
     local x, y, z, o = player:GetX(), player:GetY(), player:GetZ(), player:GetO()
-    local comp = player:SpawnCreature(companionEntry, x + 2, y, z, o, 1, 0, 0, 0) -- временный спавн
+    -- Временный спавн с таймером 0 = без автодеспавна (убираем вручную/DismissCompanion)
+    local comp = player:SpawnCreature(companionEntry, x + 2, y, z, o, 1, 0, 0, 0)
     if comp then
         comp:SetFaction(35) -- дружелюбная фракция
         comp:SetLevel(player:GetLevel())
-        -- Масштабируем статы компаньона под игрока
-        local hp = player:GetMaxHealth() * 0.4
-        comp:SetMaxHealth(math.floor(hp))
+        comp:SetMaxHealth(CompanionSystem.CalcCompanionHealth(player))
         comp:SetHealth(comp:GetMaxHealth())
+        -- Компаньон следует за владельцем
+        comp:SetStandState(0)
 
         CompanionSystem.Active[guid] = comp
         SoloSystem.SoloPlayers[guid] = SoloSystem.SoloPlayers[guid] or {}
         SoloSystem.SoloPlayers[guid].companion = comp:GetGUIDLow()
 
-        player:SendBroadcastMessage("|cff4B0082[Ночь темного Ворона]|r Компаньон призывает: " .. info.name .. ".")
+        player:SendBroadcastMessage("|cff4B0082[Ночь темного Ворона]|r Компаньон призван: " .. info.name .. ".")
         comp:SendUnitSay("Я с тобой, герой Ночи.", 0)
         return true
     end
     return false
+end
+
+-- Здоровье компаньона: 40% от максимального здоровья владельца, не меньше 100
+function CompanionSystem.CalcCompanionHealth(player)
+    local hp = math.floor(player:GetMaxHealth() * 0.4)
+    return math.max(hp, 100)
 end
 
 -- Отозвать компаньона
@@ -110,8 +127,8 @@ function CompanionSystem.AttemptTame(player, targetCreature)
         return false
     end
 
-    -- Проверяем, не приручен ли уже этот моб кем-то altro
-    if targetCreature:GetFaction() == 35 then
+    -- Уже приручен этим или другим игроком (по живому компаньону, не по faction)
+    if CompanionSystem.GetActiveCompanionEntry(player) == mobEntry or CompanionSystem.IsTamedByAnyone(mobEntry) then
         player:SendBroadcastMessage("|cff4B0082[Ночь темного Ворона]|r Это существо уже приручено.")
         return false
     end
@@ -124,19 +141,25 @@ function CompanionSystem.AttemptTame(player, targetCreature)
         -- Успех: приручаем
         targetCreature:SetFaction(35) -- дружелюбная фракция
         targetCreature:SetLevel(player:GetLevel())
-        local hp = player:GetMaxHealth() * 0.4
-        targetCreature:SetMaxHealth(math.floor(hp))
+        targetCreature:SetMaxHealth(CompanionSystem.CalcCompanionHealth(player))
         targetCreature:SetHealth(targetCreature:GetMaxHealth())
 
         local guid = player:GetGUIDLow()
+        -- Прежний компаньон уходит, новый занимает его место
+        if CompanionSystem.Active[guid] then
+            local old = CompanionSystem.Active[guid]
+            if old and old ~= targetCreature and old:IsInWorld() then
+                old:Despawn(0, 0)
+            end
+        end
         CompanionSystem.Active[guid] = targetCreature
         SoloSystem.SoloPlayers[guid] = SoloSystem.SoloPlayers[guid] or {}
         SoloSystem.SoloPlayers[guid].companion = targetCreature:GetGUIDLow()
 
         -- Повышаем навык
-        SkillSystem.PlayerSkillUp(player, 90005, 5)
+        local newSkill = SkillSystem.PlayerSkillUp(player, 90005, 5)
 
-        player:SendBroadcastMessage(string.format("|cff4B0082[Ночь темного Ворона]|r Вы приручили %s! Навык Приручения Теней повышен (%d).", tameTarget.desc, playerSkill))
+        player:SendBroadcastMessage(string.format("|cff4B0082[Ночь темного Ворона]|r Вы приручили %s! Навык Приручения Теней повышен (%d).", tameTarget.desc, newSkill))
         targetCreature:SendUnitSay("Я теперь твой спутник.", 0)
         return true
     else
@@ -156,25 +179,67 @@ end
 
 -- Лечение компаньоном игрока (раз в 5 секунд в бою)
 local function CompanionHealTick(event, comp)
-    local players = comp:GetPlayersInRange(30)
-    if not players or #players == 0 then return end
+    if not comp or not comp:IsInWorld() then return end
 
-    local owner = players[1]
-    if owner and SoloSystem.IsSoloMode(owner) then
-        local missingHP = owner:GetMaxHealth() - owner:GetHealth()
-        if missingHP > 0 then
-            local heal = math.floor(owner:GetMaxHealth() * 0.05) -- 5% макс HP
-            owner:SetHealth(owner:GetHealth() + heal)
-            if owner:GetHealth() > owner:GetMaxHealth() then
-                owner:SetHealth(owner:GetMaxHealth())
-            end
-            owner:SendBroadcastMessage("|cff4B0082[Ночь темного Ворона]|r Целитель Лунный исцеляет вас (" .. heal .. " HP).")
+    local owner = CompanionSystem.GetOwner(comp)
+    if not owner then return end
+    if not SoloSystem.IsSoloMode(owner) then return end
+    if comp:GetEntry() ~= CompanionSystem.HEALER_ENTRY then return end
+
+    local missingHP = owner:GetMaxHealth() - owner:GetHealth()
+    if missingHP > 0 then
+        local heal = math.min(math.floor(owner:GetMaxHealth() * 0.05), missingHP) -- 5% макс HP
+        owner:SetHealth(owner:GetHealth() + heal)
+        if owner:GetHealth() > owner:GetMaxHealth() then
+            owner:SetHealth(owner:GetMaxHealth())
         end
+        owner:SendBroadcastMessage("|cff4B0082[Ночь темного Ворона]|r Целитель Лунный исцеляет вас (" .. heal .. " HP).")
     end
 end
 
+CompanionSystem.HEALER_ENTRY = 92003
+
+-- Найти владельца по объекту компаньона
+function CompanionSystem.GetOwner(comp)
+    local compGuid = comp:GetGUIDLow()
+    for playerGuid, activeComp in pairs(CompanionSystem.Active) do
+        if activeComp == comp then
+            return GetPlayerByGUID and GetPlayerByGUID(playerGuid) or nil
+        end
+    end
+    return nil
+end
+
+-- Компаньон приручён кем-то (есть в активных у любого игрока)
+function CompanionSystem.IsTamedByAnyone(mobEntry)
+    for _, comp in pairs(CompanionSystem.Active) do
+        if comp and comp:IsInWorld() and comp:GetEntry() == mobEntry then
+            return true
+        end
+    end
+    return false
+end
+
+-- Отозвать компаньона при выходе игрока, чтобы не висел в мире
+local function OnPlayerLogout(event, player)
+    CompanionSystem.DismissCompanion(player)
+end
+
 function CompanionSystem.Init()
-    print("|cff4B0082[NightDarkRaven]|r Система компаньонов загружена (компаньоны: " .. table.getn(CompanionSystem.Available) .. ").")
+    -- Регистрируем хил-тик целителя (каждые 5000 мс)
+    if CreateLuaEvent then
+        CreateLuaEvent(function()
+            for _, comp in pairs(CompanionSystem.Active) do
+                CompanionHealTick(nil, comp)
+            end
+        end, 5000, 0)
+    end
+
+    RegisterPlayerEvent(4, OnPlayerLogout) -- PLAYER_EVENT_ON_LOGOUT
+
+    local count = 0
+    for _ in pairs(CompanionSystem.Available) do count = count + 1 end
+    print("|cff4B0082[NightDarkRaven]|r Система компаньонов загружена (компаньоны: " .. count .. ").")
 end
 
 return CompanionSystem

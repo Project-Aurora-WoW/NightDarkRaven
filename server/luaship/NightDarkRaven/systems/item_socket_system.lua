@@ -177,13 +177,8 @@ function ItemSocketSystem.ApplyGemEffect(player, gemEntry, apply)
     local info = LegendaryStones_GetStoneInfo(gemEntry)
     if not info then return end
 
-    local multiplier = apply and 1 or -1
-
-    -- Здесь в реальной реализации нужно модифицировать статы игрока
-    -- Через AzerothCore API: ModifyStat, AddAura, SetStatBonus и т.д.
-    -- Для Eluna пока выводим сообщение
-    local statName = info.stat or "unknown"
-    local value = info.value or 0
+    local stones = require("NightDarkRaven.systems.legendary_stones_system")
+    stones.ApplyStoneEffect(player, gemEntry, apply)
 
     if apply then
         player:SendBroadcastMessage(string.format("|cff4B0082[Ночь темного Ворона]|r Камень '%s' вставлен: %s", info.name, info.desc))

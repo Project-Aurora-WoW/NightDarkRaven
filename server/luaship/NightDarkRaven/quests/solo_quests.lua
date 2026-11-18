@@ -65,7 +65,7 @@ local function OnGossipSelect_SoloGuide(event, player, creature, sender, intid, 
             player:CompleteQuest(95001)
             player:RewardPlayer(95001)
             player:AddItem(91001, 1) -- Кольцо Ночного Ворона
-            creature:SendUnitSay("Ты достоин称号 Ночного Ворона. Прими это кольцо.", 0)
+            creature:SendUnitSay("Ты достоин звания Ночного Ворона. Прими это кольцо.", 0)
         else
             creature:SendUnitSay("Это испытание только для соло.", 0)
         end
