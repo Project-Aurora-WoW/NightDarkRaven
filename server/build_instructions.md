@@ -438,3 +438,59 @@ window.webkit.messageHandlers.iOSLauncher.postMessage({
 | GET | `/api/clientpatches/:id/download?autoApply=true` | Скачать патч и отметить применённым |
 | POST | `/api/clientpatches/:id/apply-launcher` | Отметить патч применённым через лаунчер |
 
+## 22. Система сокетов предметов (вставка камней в шмот)
+
+Три варианта реализации сокетов:
+
+### 22.1 Вариант 1: Таблица БД + Lua (рекомендуется для старта)
+
+Новые таблицы в БД `world`:
+```bash
+mysql -u root -p world < server/sql/12_item_sockets.sql
+```
+
+Лua-система: `server/luaship/NightDarkRaven/systems/item_socket_system.lua`
+Gossip NPC: `server/luaship/NightDarkRaven/quests/item_socket_gossip.lua`
+
+Возможности:
+- Вставка камней в сокеты предметов через gossip NPC «Мастер Камней Теней» (93001)
+- Извлечение камней обратно в инвентарь
+- Постоянное хранение в таблице `character_item_sockets`
+- Шаблоны сокетов в таблице `item_socket_template`
+
+### 22.2 Вариант 2: Дубликаты предметов с камнями
+
+```bash
+mysql -u root -p world < server/sql/13_item_sockets_items.sql
+```
+
+Предметы с уже вставленными камнями (entry 950021-950030):
+- Перчатки Теневого Боя с разными камнями
+- Плащ Ночного Стража с камнями
+- Кольцо, ошейник, медальон, клинок с камнями
+
+Можно выдавать как награду за квесты или лут с мобов.
+
+### 22.3 Вариант 3: Полноценные сокетов в C++ ядре
+
+Патчи для AzerothCore ядра:
+- `cpp_core/patches/08_item_sockets.h.patch` — Item.h: методы сокетов
+- `cpp_core/patches/09_item_sockets.cpp.patch` — Item.cpp: реализация сокетов
+- `cpp_core/patches/10_item_sockets_lua.cpp` — Lua мост для сокетов
+
+Применение:
+```bash
+git apply ../NightDarkRaven/cpp_core/patches/08_item_sockets.h.patch
+git apply ../NightDarkRaven/cpp_core/patches/09_item_sockets.cpp.patch
+```
+
+Lua API после применения C++ патчей:
+```lua
+ItemSocketGem(player, bag, slot, gemEntry)    -- Вставить камень
+ItemUnsocketGem(player, bag, slot)            -- Извлечь камень
+ItemGetSocketGem(player, bag, slot)           -- Получить камень в сокете
+ItemHasSocket(player, bag, slot)              -- Проверить сокет
+```
+
+Лаунчер для применения патчей клиента: `launcher/patch_realmlist.py` или `launcher.bat`.
+

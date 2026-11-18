@@ -22,6 +22,7 @@ local ClientPatchSystem = require("NightDarkRaven.systems.client_patch_system")
 local ClientPatchLauncher = require("NightDarkRaven.systems.client_patch_launcher")
 local LegendaryStonesSystem = require("NightDarkRaven.systems.legendary_stones_system")
 local IllidanLessonsSystem = require("NightDarkRaven.systems.illidans_lessons_system")
+local ItemSocketSystem = require("NightDarkRaven.systems.item_socket_system")
 
 function NightDarkRaven.OnLoad()
     print("|cff4B0082[NightDarkRaven]|r Загрузка модуля v" .. NightDarkRaven.Version .. "...")
@@ -40,6 +41,7 @@ function NightDarkRaven.OnLoad()
     ClientPatchLauncher.Init()
     LegendaryStonesSystem.Init()
     IllidanLessonsSystem.Init()
+    ItemSocketSystem.Init()
 
     print("|cff4B0082[NightDarkRaven]|r Модуль загружен успешно.")
 end
