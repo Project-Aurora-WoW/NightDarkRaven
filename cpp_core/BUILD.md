@@ -1,4 +1,6 @@
-# Сборка AzerothCore с патчами Ночь темного Ворона
+# Сборка AzerothCore с модулем Ночь темного Ворона
+
+Модуль подключается как обычный модуль AzerothCore — правки файлов ядра не нужны.
 
 ## Требования
 
@@ -14,38 +16,19 @@ git clone https://github.com/azerothcore/azerothcore-wotlk.git ac-server
 cd ac-server
 ```
 
-## Шаг 2: Применить C++ патчи
-
-Из папки проекта NightDarkRaven:
+## Шаг 2: Скопировать модуль
 
 ```bash
-# Применить все патчи ядра
-git apply ../NightDarkRaven/cpp_core/patches/01_player_skills.h.patch
-git apply ../NightDarkRaven/cpp_core/patches/02_player_skills.cpp.patch
-git apply ../NightDarkRaven/cpp_core/patches/03_unit_solo.h.patch
-git apply ../NightDarkRaven/cpp_core/patches/04_unit_solo.cpp.patch
-git apply ../NightDarkRaven/cpp_core/patches/05_worldserver_solo_login.patch
-
-# Lua мост (если компилируете с Eluna)
-git apply ../NightDarkRaven/cpp_core/patches/06_lua_bridge.cpp
+cp -r ../NightDarkRaven/cpp_core/module ./modules/mod-nightdarkraven
 ```
 
-> **Примечание:** Патчи созданы как unified diff. Если они не применяются автоматически, используйте код из патчей для ручного вставления в соответствующие файлы.
+Если CMake не подхватывает папку автоматически, добавьте строку в корневой `CMakeLists.txt`:
 
-## Шаг 3: Добавить Lua мост в сборку (опционально)
+```cmake
+add_subdirectory(modules/mod-nightdarkraven)
+```
 
-Если используете Eluna/Lua и хотите мост к C++ функциям:
-
-1. Скопируйте `06_lua_bridge.cpp` в `src/server/game/Scripting/Lua/` (или соответствующую папку вашей версии AzerothCore)
-2. Добавьте его в `CMakeLists.txt` того же каталога:
-   ```cmake
-   set(LUA_SCRIPTS
-       ${LUA_SCRIPTS}
-       ${CMAKE_CURRENT_SOURCE_DIR}/NightRavenLuaBridge.cpp
-   )
-   ```
-
-## Шаг 4: Собрать сервер
+## Шаг 3: Собрать сервер
 
 ```bash
 mkdir build && cd build
@@ -53,7 +36,7 @@ cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWITH_SCRIPTING=ON -DWITH_LUA=ON
 make -j$(nproc)
 ```
 
-## Шаг 5: База данных
+## Шаг 4: База данных
 
 ```bash
 # Создать схемы AzerothCore
@@ -61,8 +44,8 @@ mysql -u root -p < ../data/sql/create/mysql_create.sql
 mysql -u root -p < ../data/sql/create/characters_create.sql
 mysql -u root -p < ../data/sql/create/auth_create.sql
 
-# Наши таблицы C++
-mysql -u root -p world < ../NightDarkRaven/cpp_core/patches/07_database_schema.sql
+# Таблицы C++ модуля (база characters)
+mysql -u root -p characters < ../modules/mod-nightdarkraven/data/sql/db-characters/nightdarkraven.sql
 
 # Наш контент мира (кампании, мобы, предметы, квесты)
 mysql -u root -p world < ../NightDarkRaven/server/sql/02_campaigns_creatures.sql
@@ -85,20 +68,24 @@ mysql -u root -p world < ../NightDarkRaven/server/sql/07_campaigns_solo.sql
 ### Навыки
 В игровом чате (через GM-команду или Lua):
 ```
-.lua print(player:GetNightRavenSkillValue(90005))
+.lua print(NightDarkRaven.GetSkill(player, 90005))
 ```
 
 ### Соло-режим
 ```
-.lua player:SetSoloModeEnabled(true)
+.lua NightDarkRaven.SetSoloMode(player, true)
 ```
 
-Мобы вокруг игрока должны получить -40% здоровья и -30% урона.
+Урон мобов вокруг игрока снижается на 30% (`SoloDamageMultiplier`).
 
-## Откат изменений
+## Удаление
 
-```bash
-git apply -R ../NightDarkRaven/cpp_core/patches/0*.patch
+Модуль не меняет файлы ядра, поэтому достаточно удалить `modules/mod-nightdarkraven`
+и таблицы:
+
+```sql
+DROP TABLE IF EXISTS `character_nightraven_skills`;
+DROP TABLE IF EXISTS `character_solo_state`;
 ```
 
 ## Структура файлов
@@ -107,26 +94,26 @@ git apply -R ../NightDarkRaven/cpp_core/patches/0*.patch
 cpp_core/
 ├── README.md
 ├── BUILD.md
-└── patches/
-    ├── 01_player_skills.h.patch
-    ├── 02_player_skills.cpp.patch
-    ├── 03_unit_solo.h.patch
-    ├── 04_unit_solo.cpp.patch
-    ├── 05_worldserver_solo_login.patch
-    ├── 06_lua_bridge.cpp
-    └── 07_database_schema.sql
+└── module/
+    ├── CMakeLists.txt
+    ├── include/
+    │   └── mod_nightdarkraven.h
+    ├── src/
+    │   └── mod_nightdarkraven.cpp
+    └── data/
+        └── sql/
+            └── db-characters/
+                └── nightdarkraven.sql
 ```
 
 ## Соответствие Lua ↔ C++
 
-| Функция | Lua (Eluna) | C++ (ядро) |
-|---------|-------------|------------|
-| Навык игрока | `GetNightRavenSkillValue()` | `Player::GetNightRavenSkillValue()` |
-| Установить навык | `SetNightRavenSkillValue()` | `Player::SetNightRavenSkillValue()` |
-| Повысить навык | `NightRavenSkillUp()` | `Player::NightRavenSkillUp()` |
-| Есть навык | `HasNightRavenSkill()` | `Player::HasNightRavenSkill()` |
-| Соло-режим вкл | `SoloEnable()` | `Player::SetSoloModeEnabled(true)` |
-| Соло-режим выкл | `SoloDisable()` | `Player::SetSoloModeEnabled(false)` |
-| Проверить соло | `SoloIsEnabled()` | `Player::IsSoloModeEnabled()` |
-| Множитель HP | — | `Unit::GetSoloHealthMultiplier()` (0.60) |
-| Множитель урона | — | `Unit::GetSoloDamageMultiplier()` (0.70) |
+| Функция | C++ (`namespace NightDarkRaven`) | Таблица БД |
+|---------|----------------------------------|------------|
+| Навык игрока | `GetSkill(player, id)` | `character_nightraven_skills` |
+| Установить навык | `SetSkill(player, id, value)` | то же |
+| Повысить навык | `SkillUp(player, id, amount)` | то же |
+| Есть навык | `HasSkill(player, id)` | то же |
+| Соло-режим вкл | `SetSoloMode(player, true)` | `character_solo_state` |
+| Соло-режим выкл | `SetSoloMode(player, false)` | то же |
+| Проверить соло | `IsSoloMode(player)` | `character_solo_state` |

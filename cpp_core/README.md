@@ -1,68 +1,68 @@
-# C++ ядро AzerothCore — Ночь темного Ворона
+# C++ модуль AzerothCore — Ночь темного Ворона
 
-Патчи для ядра AzerothCore (ветка wotlk / WoW 3.3.5a). Переносят навыки и соло-режим из Lua в C++ для производительности и постоянного хранения.
+Модуль `mod-nightdarkraven` заменяет прежние патчи ядра. Патчи больше не нужны:
+модуль подключается как обычный модуль AzerothCore и **не меняет ни одного файла ядра**,
+поэтому переживает обновления AzerothCore.
 
-## Что переносится в C++
+## Что делает модуль
 
-| Система | Файлы ядра | Что делает |
-|---------|------------|------------|
-| Навыки/профессии | `Player.cpp`, `Player.h`, `Database/DatabaseWorkerPool.cpp` | Постоянное хранение в таблице `character_skills` |
-| Соло-режим (урон/здоровье) | `Unit.cpp`, `Unit.h` | Модификатор урона (-30%) и здоровья (-40%) для соло-игроков |
-| Компаньоны (ИИ) | `Pet.cpp`, `CreatureAI.cpp` | Поведение компаньона в режиме следования |
+| Система | Реализация | Хранение |
+|---------|------------|----------|
+| Кастомные навыки 90001–90005 | `PlayerScript` + API-функции | `characters.character_nightraven_skills` |
+| Соло-режим | `PlayerScript::OnPlayerLogin` + `UnitScript::OnDamage` | `characters.character_solo_state` |
+| Настройки | `WorldScript::OnAfterConfigLoad` | `worldserver.conf` |
 
-## Необходимые изменения в БД
+Модуль даёт Lua-скриптам постоянное хранение навыков и соло-режима —
+сейчас в Lua это жило только в памяти и терялось при рестарте.
 
-Выполнить перед запуском сервера:
+## Установка
 
-```sql
--- Таблица навыков персонажей (перманентное хранение)
-CREATE TABLE IF NOT EXISTS `character_skills` (
-    `guid` INT UNSIGNED NOT NULL,
-    `skill_id` SMALLINT UNSIGNED NOT NULL,
-    `value` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
-    `max` SMALLINT UNSIGNED NOT NULL DEFAULT 375,
-    PRIMARY KEY (`guid`, `skill_id`),
-    INDEX `idx_guid` (`guid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```bash
+# 1. Скопировать модуль в репозиторий AzerothCore
+cp -r cpp_core/module <ac-server>/modules/mod-nightdarkraven
 
--- Таблица соло-состояния (если не создана через SQL)
-CREATE TABLE IF NOT EXISTS `solo_state` (
-    `character_guid` INT UNSIGNED NOT NULL PRIMARY KEY,
-    `account_id` INT UNSIGNED NOT NULL,
-    `solo_mode` TINYINT UNSIGNED NOT NULL DEFAULT 0,
-    `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+# 2. Пересобрать сервер (CMake подхватит modules/* автоматически)
+cd <ac-server>/build
+cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWITH_SCRIPTING=ON
+make -j$(nproc)
+
+# 3. Применить схему БД
+mysql -u root -p characters < <ac-server>/modules/mod-nightdarkraven/data/sql/db-characters/nightdarkraven.sql
 ```
 
-## Как применить патчи
+Если CMake не подхватывает папку автоматически — добавьте в `modules/CMakeLists.txt`
+или в корневой `CMakeLists.txt`:
 
-1. Скачать AzerothCore (ветка wotlk):
-   ```bash
-   git clone https://github.com/azerothcore/azerothcore-wotlk.git ac-server
-   cd ac-server
-   ```
+```cmake
+add_subdirectory(modules/mod-nightdarkraven)
+```
 
-2. Скопировать патчи в корень репозитория AzerothCore и применить:
-   ```bash
-   git apply ../NightDarkRaven/cpp_core/patches/*.patch
-   ```
+## Настройки в `worldserver.conf`
 
-3. Собрать сервер:
-   ```bash
-   mkdir build && cd build
-   cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWITH_SCRIPTING=ON -DWITH_LUA=ON
-   make -j$(nproc)
-   ```
+```ini
+NightDarkRaven.EnableSoloMode = 1
+NightDarkRaven.EnableCustomSkills = 1
+NightDarkRaven.SoloHealthMultiplier = 0.60
+NightDarkRaven.SoloDamageMultiplier = 0.70
+```
 
-4. Импортировать SQL схемы в базы данных
+## Соответствие Lua ↔ C++
 
-5. Запустить сервер
+| Функция | C++ (`namespace NightDarkRaven`) | Таблица БД |
+|---------|----------------------------------|------------|
+| Навык игрока | `GetSkill(player, id)` | `character_nightraven_skills` |
+| Установить навык | `SetSkill(player, id, value)` | то же |
+| Повысить навык | `SkillUp(player, id, amount)` | то же |
+| Есть навык | `HasSkill(player, id)` | то же |
+| Соло-режим | `SetSoloMode(player, bool)` / `IsSoloMode(player)` | `character_solo_state` |
 
-## Взаимодействие с Lua
+## Ограничения текущей версии
 
-C++ ядро предоставляет базовую функциональность, Lua-скрипты обрабатывают контент:
-
-- C++: навыки в БД, модификаторы урона/здоровья, ИИ компаньонов
-- Lua: квесты, gossip-меню, события мира, луты, патчи клиента
-
-Lua может читать навыки игрока через стандартный API `GetSkillValue()` и `HasSkill()` после патчей C++.
+- Модификатор урона (`UnitScript::OnDamage`) режет урон **по мобам**, если рядом есть
+  соло-игрок. Множитель здоровья моба (`SoloHealthMultiplier`) загружается и логируется,
+  но пока не применяется к мобам — для этого нужен пересчёт `SetMaxHealth` при спавне.
+- Публикация функций в Lua (Eluna) требует отдельного моста; сами функции C++ готовы
+  и вызываются из GM-команд/другого модуля.
+- Сборка модуля против AzerothCore **не проверена** — исходники эталонного ядра
+  подтягивались только для сверки сигнатур (`PlayerScript::OnPlayerLogin/OnPlayerLogout/OnPlayerSave`,
+  `UnitScript::OnDamage`, `WorldScript::OnAfterConfigLoad`).
