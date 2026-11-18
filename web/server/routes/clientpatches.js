@@ -100,4 +100,88 @@ router.get('/log', requireGm, async (req, res) => {
     }
 });
 
+// GET /api/clientpatches/check — проверить нужные патчи (для лаунчера, без GM-проверки)
+router.get('/check', async (req, res) => {
+    try {
+        const [rows] = await worldPool.query(
+            `SELECT patch_id, patch_name, patch_type, target_file, target_path, content, checksum, is_required
+             FROM client_patches
+             WHERE is_required = 1 AND is_applied = 0
+             ORDER BY patch_id`
+        );
+        res.json({
+            needsUpdate: rows.length > 0,
+            patches: rows
+        });
+    } catch (err) {
+        console.error('[ClientPatches check]', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET /api/clientpatches/:patchId/download — скачать содержимое патча (для лаунчера)
+router.get('/:patchId/download', async (req, res) => {
+    try {
+        const { patchId } = req.params;
+
+        const [rows] = await worldPool.query(
+            `SELECT patch_name, patch_type, target_file, target_path, content, checksum
+             FROM client_patches WHERE patch_id = ? LIMIT 1`,
+            [patchId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'Патч не найден' });
+        }
+
+        const patch = rows[0];
+
+        // Отмечаем патч как применённый (опционально, если лаунчер сам применяет)
+        const { autoApply } = req.query;
+        if (autoApply === 'true') {
+            await worldPool.query(
+                `UPDATE client_patches SET is_applied = 1, applied_at = NOW() WHERE patch_id = ?`,
+                [patchId]
+            );
+            await worldPool.query(
+                `INSERT INTO client_patch_log (patch_id, status, message, changed_by) VALUES (?, 'success', 'Применено через лаунчер', 'launcher')`,
+                [patchId]
+            );
+        }
+
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        res.setHeader('X-Patch-Name', patch.patch_name);
+        res.setHeader('X-Patch-Type', patch.patch_type);
+        res.setHeader('X-Target-File', patch.target_file);
+        res.setHeader('X-Target-Path', patch.target_path || '');
+        res.setHeader('X-Checksum', patch.checksum || '');
+        res.send(patch.content);
+    } catch (err) {
+        console.error('[ClientPatches download]', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST /api/clientpatches/:patchId/apply-launcher — отметить патч применённым лаунчером
+router.post('/:patchId/apply-launcher', async (req, res) => {
+    try {
+        const { patchId } = req.params;
+
+        await worldPool.query(
+            `UPDATE client_patches SET is_applied = 1, applied_at = NOW() WHERE patch_id = ?`,
+            [patchId]
+        );
+
+        await worldPool.query(
+            `INSERT INTO client_patch_log (patch_id, status, message, changed_by) VALUES (?, 'success', 'Применено через лаунчер', 'launcher')`,
+            [patchId]
+        );
+
+        res.json({ success: true, message: 'Патч отмечен как применённый через лаунчер' });
+    } catch (err) {
+        console.error('[ClientPatches apply-launcher]', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

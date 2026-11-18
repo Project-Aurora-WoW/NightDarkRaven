@@ -286,3 +286,150 @@ API:
 | Патчи клиента | `/clientpatches` | Управление патчами клиента WoW |
 | Логи | `/admin` | История соло-состояний и патчей |
 
+## 20. Настройка и сборка нативных мобильных приложений
+
+### Android Studio (Kotlin)
+
+#### Требования
+- Android Studio Arctic Fox или новее
+- JDK 11+
+- Android SDK API 21+ (minSdk 21, targetSdk 34)
+
+#### Установка
+1. Скачайте и установите [Android Studio](https://developer.android.com/studio)
+2. При первом запуске установите компоненты через SDK Manager:
+   - Android SDK Platform 34
+   - Android SDK Build-Tools 34.0.0
+   - Android Emulator (опционально)
+
+#### Сборка проекта
+```bash
+cd launcher/native/android
+
+# Посмотреть доступные задачи
+./gradlew tasks
+
+# Собрать отладочную версию (APK)
+./gradlew assembleDebug
+
+# Собрать релизную версию (требует подписи)
+./gradlew assembleRelease
+```
+
+Готовый APK будет в: `launcher/native/android/app/build/outputs/apk/debug/app-debug.apk`
+
+#### Установка на устройство
+```bash
+# Через ADB (устройство должно быть в режиме отладки по USB)
+adb install app/build/outputs/apk/debug/app-debug.apk
+
+# Или через Android Studio: Run → Run 'app'
+```
+
+#### Структура проекта
+```
+launcher/native/android/
+├── app/
+│   ├── src/main/AndroidManifest.xml      # Манифест приложения
+│   ├── src/main/java/.../MainActivity.kt  # Главная активность (WebView + JS-интерфейс)
+│   ├── src/main/res/layout/activity_main.xml  # Разметка экрана
+│   ├── src/main/res/values/               # Строки и темы
+│   ├── src/main/assets/www/               # Встроенный веб-лаунчер (HTML/JS/CSS)
+│   └── build.gradle
+├── build.gradle
+├── gradle/wrapper/gradle-wrapper.properties
+└── README.md
+```
+
+#### JS-интерфейс AndroidLauncher
+Из веб-лаунчера (в WebView) доступны методы:
+- `AndroidLauncher.patchRealmlist(realm, path)` — обновить realmlist.wtf
+- `AndroidLauncher.launchWow(path, realm)` — запустить WoW
+- `AndroidLauncher.openUrl(url)` — открыть URL в браузере
+- `AndroidLauncher.applyPatch(id, content, file)` — применить патч клиента
+
+---
+
+### Xcode (Swift / iOS)
+
+#### Требования
+- macOS с Xcode 15.0 или новее
+- Apple ID для подписи приложения (для установки на устройство)
+- iOS SDK 17.0+
+
+#### Установка
+1. Скачайте и установите [Xcode](https://developer.apple.com/xcode/) из App Store
+2. При первом запуске установите дополнительные компоненты
+
+#### Сборка проекта
+```bash
+cd launcher/native/ios
+
+# Открыть в Xcode
+open Runner.xcodeproj
+
+# Или собрать из командной строки
+xcodebuild -project Runner.xcodeproj -scheme Runner -configuration Debug build
+```
+
+#### Установка на устройство
+1. Подключите iPhone/iPad через USB
+2. В Xcode выберите устройство в верхней панели
+3. Нажмите ▶️ Run
+4. На устройстве доверьтесь разработчику: Настройки → Общие → Управление устройством
+
+#### Структура проекта
+```
+launcher/native/ios/
+├── Runner/
+│   ├── AppDelegate.swift        # Точка входа, WKWebView + JS-интерфейс
+│   ├── ContentView.swift        # SwiftUI интерфейс
+│   └── Info.plist               # Конфигурация приложения
+├── Runner.xcodeproj/
+│   └── project.pbxproj          # Xcode проект
+└── README.md
+```
+
+#### JS-интерфейс iOSLauncher
+Из веб-лаунчера (в WKWebView) доступны методы через `window.webkit.messageHandlers.iOSLauncher.postMessage()`:
+```javascript
+window.webkit.messageHandlers.iOSLauncher.postMessage({
+    action: "patchRealmlist",
+    realm: "127.0.0.1",
+    path: "/storage/emulated/0/WoW/"
+});
+
+window.webkit.messageHandlers.iOSLauncher.postMessage({
+    action: "launchWow",
+    path: "/storage/emulated/0/WoW/",
+    realm: "127.0.0.1"
+});
+
+window.webkit.messageHandlers.iOSLauncher.postMessage({
+    action: "openUrl",
+    url: "http://localhost:3000"
+});
+```
+
+> **Примечание:** На iOS запуск `WoW.exe` напрямую невозможен (нет Windows API). Лаунчер открывает веб-клиент и позволяет применить `realmlist.wtf` для дальнейшего использования в эмуляторе Windows или на ПК.
+
+## 21. Автоматическое применение патчей клиента при входе
+
+Система патчей клиента (`server/sql/09_client_patches.sql`, `systems/client_patch_system.lua`) работает следующим образом:
+
+1. Администратор создаёт патч через веб-админку (`/clientpatches`) или прямо в БД `world`
+2. При входе любого игрока в мир Lua-сервер проверяет таблицу `client_patches`
+3. Игрок получает системные сообщения со списком неприменённых патчей
+4. Патчи можно применить тремя способами:
+   - **Десктоп-лаунчер** (`launcher.bat` / `launcher.ps1`) — автоматически проверяет и применяет патчи при запуске
+   - **Мобильный PWA-лаунчер** (`launcher/mobile/`) — проверяет патчи при старте, позволяет скачать каждый патч
+   - **Нативные мобильные приложения** (Android/iOS) — проверяют и применяют патчи через веб-API
+   - **Веб-админка** — в разделе «Патчи клиента» можно вручную применить любой патч
+
+### API для скачивания патчей лаунчером
+| Метод | Путь | Описание |
+|-------|------|----------|
+| GET | `/api/clientpatches/check` | Проверить нужные патчи (без GM-проверки) |
+| GET | `/api/clientpatches/:id/download?autoApply=true` | Скачать патч и отметить применённым |
+| POST | `/api/clientpatches/:id/apply-launcher` | Отметить патч применённым через лаунчер |
+

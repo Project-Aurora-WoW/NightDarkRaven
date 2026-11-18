@@ -44,7 +44,15 @@
                     <button class="btn btn-outline btn-large" onclick="launcher.openWebClient()">
                         🌐 Веб-клиент
                     </button>
+                    <button class="btn btn-outline btn-large" onclick="launcher.checkPatches()">
+                        🔄 Проверить патчи
+                    </button>
                 </div>
+            </div>
+
+            <div class="card">
+                <h3>Патчи клиента</h3>
+                <div id="patchesList" style="font-size:0.85rem; color:var(--text-muted);">Проверка при запуске...</div>
             </div>
 
             <div class="card">
