@@ -1,0 +1,66 @@
+# ============================================================================
+# Ночь темного Ворона — Конфигурация WorldServer (AzerothCore)
+# Скопировать в worldserver.conf и отредактировать под себя
+# ============================================================================
+
+[WorldDatabase]
+Hostname = 127.0.0.1
+Username = root
+Password =
+Port = 3306
+Database = world
+
+[CharacterDatabase]
+Hostname = 127.0.0.1
+Username = root
+Password =
+Port = 3306
+Database = characters
+
+[DataDir]
+Libraries = lib
+Data = data
+DBC = dbc
+Maps = maps
+mmaps = mmaps
+vmaps = vmaps
+
+[WorldServer]
+ListenHost = 0.0.0.0
+ListenPort = 8090
+
+[LogonServer]
+RemoteAddress = 127.0.0.1
+RemotePort = 3724
+
+[Rate]
+Health = 1.0
+Power1 = 1.0
+Power2 = 1.0
+Power3 = 1.0
+DropItemPoor = 1.0
+DropItemNormal = 1.0
+DropItemUncommon = 1.0
+DropItemRare = 1.0
+DropItemEpic = 1.0
+DropItemLegendary = 1.0
+DropItemArtifact = 1.0
+DropItemHeirloom = 1.0
+DropMoney = 1.0
+XP = 1.0
+QuestXP = 1.0
+ExploreXP = 1.0
+Honor = 1.0
+
+[Commands]
+EnabledCommandGroups = 1
+
+[Console]
+TelnetEnabled = 0
+TelnetHost = 0.0.0.0
+TelnetPort = 3443
+TelnetAllowed =
+
+[LuaEvents]
+# Lua / Eluna подключение (если скомпилировано с поддержкой скриптов)
+LuaEventPath = ../luaship/NightDarkRaven

@@ -1,47 +1,58 @@
 # Lua-скрипты (Eluna) — Ночь темного Ворона
 
-Папка содержит серверные Lua-скрипты для AzerothCore (ветка wotlk / WoW 3.3.5a).
+Архитектура модуля:
 
-## Содержимое
+```
+server/luaship/NightDarkRaven/
+├── init.lua                  # Точка входа для Eluna
+├── module.lua                # Основной модуль, регистрирует все подсистемы
+├── systems/
+│   ├── item_system.lua       # Предметы (entry 90001-91005)
+│   ├── skill_system.lua      # Навыки/профессии (90001-90005)
+│   ├── quest_system.lua      # Универсальный gossip для 11 кампаний
+│   ├── zone_system.lua       # Кастомные зоны и телепорты
+│   └── dungeon_system.lua    # Подземелья campaign 6, 7, 11
+└── quests/
+    ├── campaign_01_awakening.lua          (квесты 90101-90103)
+    ├── campaign_02_shadows.lua            (квесты 90201-90204)
+    ├── campaign_03_cursed_feathers.lua    (квесты 90301-90303)
+    ├── campaign_04_blood_moon.lua         (квесты 90401-90404)
+    ├── campaign_05_keepers.lua            (квесты 90501-90503)
+    ├── campaign_06_forgotten_temple.lua   (квесты 90601-90604)
+    ├── campaign_07_seal_of_darkness.lua   (квесты 90701-90703)
+    ├── campaign_08_raven_blade.lua        (квесты 90801-90804)
+    ├── campaign_09_night_watch.lua        (квесты 90901-90903)
+    ├── campaign_10_raven_and_moon.lua     (квесты 91001-91004)
+    └── campaign_11_end_of_night.lua       (квесты 91101-91105)
+```
 
-| Файл | Описание |
-|------|----------|
-| `npc_dark_raven.lua` | NPC "Темный Ворон" (entry 90001) с gossip-меню, фразами в бою и при смерти |
-| `world_events.lua` | Сообщения при входе/выходе, объявление "Ночи темного Ворона" по игровому времени |
-| `quest_shadow_feather.lua` | Пример квеста "Перо Тени": выдача, прогресс, сдача, лут с моба |
+## Как загрузить
 
-## Подключение
-
-1. Убедитесь, что AzerothCore собран с поддержкой Eluna (Lua):
-   ```cmake
-   # в CMakeLists.txt AzerothCore должно быть включено:
-   WITH_LUA=ON
+1. Убедитесь, что AzerothCore собран с поддержкой Lua/Eluna.
+2. Положите папку `NightDarkRaven/` в директорию скриптов сервера (обычно `ac-server/luaship/`).
+3. В `worldserver.conf` укажите путь:
    ```
-   либо при конфигурации CMake укажите `-DWITH_SCRIPTING=ON` (в зависимости от версии сборки).
-
-2. Положите скрипты в папку скриптов сервера, например:
+   LuaEventPath = ../luaship/NightDarkRaven
    ```
-   ac-server/luaship/NightDarkRaven/
-   ```
-   (точный путь зависит от сборки Eluna: обычно `luaship/` в корне сервера).
-
-3. Перезапустите `worldserver`. В логе должны появиться строки:
-   ```
-   [NightDarkRaven] Lua: npc_dark_raven (entry 90001) loaded.
-   [NightDarkRaven] Lua: world_events loaded.
-   [NightDarkRaven] Lua: quest_shadow_feather (quest 90001) loaded.
-   ```
+   либо загрузите `init.lua` через механизм скриптов вашей сборки Eluna.
 
 ## База данных
 
-Для квеста `quest_shadow_feather.lua` необходимо заранее создать записи в БД `world`:
-- `quest_template` — quest ID 90001
-- `creature_queststarter` / `creature_questender` — NPC 90001
-- `item_template` — item 90001 "Перо Тени"
-- `creature_loot_template` — моб 90002 дропает item 90001
+Предметы, квесты, мобы и спавны импортируются SQL-файлами:
+- `server/sql/02_campaigns_creatures.sql`
+- `server/sql/03_campaigns_items.sql`
+- `server/sql/04_campaigns_quests.sql`
+- `server/sql/05_campaigns_loot.sql`
+- `server/sql/06_campaigns_spawns.sql`
 
-Пример SQL (опционально, подставив реальные значения):
-```sql
-INSERT INTO `creature_queststarter` (`id`, `quest`) VALUES (90001, 90001);
-INSERT INTO `creature_questender`   (`id`, `quest`) VALUES (90001, 90001);
-```
+## Аутентификация
+
+Конфиги в `server/conf/`:
+- `authserver.conf.dist` — настройки AuthServer (порт 3724, подключение к БД `auth`)
+- `worldserver.conf.dist` — настройки WorldServer (порт 8090, БД `world`/`characters`)
+
+Скопируйте `.dist` файлы без расширения и отредактируйте пароли к MySQL.
+
+## Клиент
+
+`client/configs/realmlist.wtf` — укажите адрес сервера входа (по умолчанию `127.0.0.1` для локального теста).

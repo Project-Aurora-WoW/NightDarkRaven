@@ -1,0 +1,43 @@
+# ============================================================================
+# Ночь темного Ворона — Конфигурация AuthServer (AzerothCore)
+# Скопировать в authserver.conf и отредактировать под себя
+# ============================================================================
+
+[LogonDatabase]
+Hostname = 127.0.0.1
+Username = root
+Password =
+Port = 3306
+Database = auth
+
+[WorldServer]
+RemoteAddress = 127.0.0.1
+RemotePort = 8090
+
+[LogonServer]
+ListenHost = 0.0.0.0
+ListenPort = 3724
+
+[Rate]
+Health = 1
+Power1 = 1
+Power2 = 1
+Power3 = 1
+QueueUpdateRate = 5000
+
+[Account]
+Email = 1
+MinPassword = 6
+
+[GM]
+GMClient = 1
+
+[Network]
+Nagle = 1
+TCPNoDelay = 1
+
+[Console]
+TelnetEnabled = 0
+TelnetHost = 0.0.0.0
+TelnetPort = 3443
+TelnetAllowed =
