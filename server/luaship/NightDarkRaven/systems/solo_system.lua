@@ -20,6 +20,10 @@ SoloSystem.SoloMultipliers = {
 function SoloSystem.EnableSoloMode(player)
     local guid = player:GetGUIDLow()
     SoloSystem.SoloPlayers[guid] = {companion = nil, mode = true}
+    -- Если загружен C++ модуль — сохраняем режим в characters.character_solo_state
+    if NightDarkRaven and NightDarkRaven.SetSoloMode then
+        NightDarkRaven.SetSoloMode(player, true)
+    end
     player:SendBroadcastMessage("|cff4B0082[Ночь темного Ворона]|r Соло-режим включен. Сложность адаптирована под одного игрока.")
 end
 
@@ -30,12 +34,22 @@ function SoloSystem.DisableSoloMode(player)
         SoloSystem.SoloPlayers[guid] = nil
         player:SendBroadcastMessage("|cff4B0082[Ночь темного Ворона]|r Соло-режим выключен.")
     end
+    if NightDarkRaven and NightDarkRaven.SetSoloMode then
+        NightDarkRaven.SetSoloMode(player, false)
+    end
 end
 
 -- Проверка: находится ли игрок в соло-режиме
 function SoloSystem.IsSoloMode(player)
     local guid = player:GetGUIDLow()
-    return SoloSystem.SoloPlayers[guid] ~= nil and SoloSystem.SoloPlayers[guid].mode == true
+    if SoloSystem.SoloPlayers[guid] ~= nil and SoloSystem.SoloPlayers[guid].mode == true then
+        return true
+    end
+    -- C++ модуль знает режим и после релога/перезапуска сервера
+    if NightDarkRaven and NightDarkRaven.IsSoloMode then
+        return NightDarkRaven.IsSoloMode(player) == true
+    end
+    return false
 end
 
 -- Получить множитель здоровья моба для соло

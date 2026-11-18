@@ -104,36 +104,22 @@ namespace NightDarkRaven
 
     UnitNightRavenScript::UnitNightRavenScript() : UnitScript("UnitNightRavenScript") { }
 
-    void UnitNightRavenScript::OnDamage(Unit* /*attacker*/, Unit* victim, uint32& damage)
+    CreatureNightRavenScript::CreatureNightRavenScript() : AllCreatureScript("CreatureNightRavenScript") { }
+
+    void CreatureNightRavenScript::OnCreatureAddWorld(Creature* creature)
     {
-        if (!g_EnableSoloMode || !damage)
+        if (!g_EnableSoloMode || !creature || creature->IsPet() || creature->IsSummon())
             return;
 
-        // Для существа проверяем, есть ли рядом соло-игрок, задающий сложность
-        Creature* creature = victim ? victim->ToCreature() : nullptr;
-        if (!creature)
+        // Соло-сложность относится к мобам кампаний (entry 90000-90199), не к NPC-дачителям
+        uint32 entry = creature->GetEntry();
+        if (entry < 90000 || entry > 90199)
             return;
 
-        Player* soloPlayer = nullptr;
-        for (auto const& [guid, enabled] : g_SoloMode)
-        {
-            if (!enabled)
-                continue;
-
-            Player* player = ObjectAccessor::FindPlayer(ObjectGuid::Create<HighGuid::Player>(guid));
-            if (player && player->IsInWorld() && creature->IsWithinDistInMap(player, 100.0f))
-            {
-                soloPlayer = player;
-                break;
-            }
-        }
-
-        if (!soloPlayer)
-            return;
-
-        damage = static_cast<uint32>(damage * g_SoloDamageMultiplier);
-        if (!damage)
-            damage = 1;
+        uint32 baseHealth = creature->GetMaxHealth();
+        uint32 scaled = std::max<uint32>(1, static_cast<uint32>(baseHealth * g_SoloHealthMultiplier));
+        creature->SetMaxHealth(scaled);
+        creature->SetHealth(scaled);
     }
 
     WorldNightRavenScript::WorldNightRavenScript() : WorldScript("WorldNightRavenScript") { }

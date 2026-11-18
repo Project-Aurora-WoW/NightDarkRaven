@@ -36,6 +36,15 @@ namespace NightDarkRaven
         void OnDamage(Unit* attacker, Unit* victim, uint32& damage) override;
     };
 
+    // Применяет снижение здоровья к мобам рядом с соло-игроками
+    class CreatureNightRavenScript : public AllCreatureScript
+    {
+    public:
+        CreatureNightRavenScript();
+
+        void OnCreatureAddWorld(Creature* creature) override;
+    };
+
     class WorldNightRavenScript : public WorldScript
     {
     public:

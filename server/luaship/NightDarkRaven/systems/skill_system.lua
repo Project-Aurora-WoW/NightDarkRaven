@@ -67,26 +67,36 @@ function SkillSystem.Init()
     print("|cff4B0082[NightDarkRaven]|r Система навыков: " .. count .. " профессий зарегистрировано.")
 end
 
--- Помощник: проверить, знает ли игрок навык (заглушка для AzerothCore Lua API)
+-- Помощник: проверить, знает ли игрок навык
 function SkillSystem.PlayerKnowsSkill(player, skillId)
+    -- Если загружен C++ модуль mod-nightdarkraven — используем постоянное хранение
+    if NightDarkRaven and NightDarkRaven.HasSkill then
+        return NightDarkRaven.HasSkill(player, skillId)
+    end
     if player.HasSkill then
         return player:HasSkill(skillId)
     end
-    -- В AzerothCore без C++ модификации навыки не хранятся в estándar API Eluna.
-    -- Для работы используем виртуальное хранилище в памяти (ограничено сессией).
+    -- Фоллбэк: виртуальное хранилище в памяти (теряется при рестарте сервера)
     return SkillSystem._virtualSkills[player:GetGUIDLow()] and SkillSystem._virtualSkills[player:GetGUIDLow()][skillId] == true
 end
 
 -- Помощник: получить уровень навыка игрока
 function SkillSystem.PlayerGetSkillValue(player, skillId)
+    if NightDarkRaven and NightDarkRaven.GetSkill then
+        return NightDarkRaven.GetSkill(player, skillId) or 0
+    end
     if player.GetSkillValue then
         return player:GetSkillValue(skillId) or 0
     end
     return SkillSystem._virtualSkills and SkillSystem._virtualSkills[player:GetGUIDLow()] and SkillSystem._virtualSkills[player:GetGUIDLow()][skillId] or 0
 end
 
--- Помощник: установить уровень навыка игрока (виртуальное хранилище)
+-- Помощник: установить уровень навыка игрока
 function SkillSystem.PlayerSetSkillValue(player, skillId, value)
+    if NightDarkRaven and NightDarkRaven.SetSkill then
+        NightDarkRaven.SetSkill(player, skillId, value)
+        return
+    end
     if not SkillSystem._virtualSkills then SkillSystem._virtualSkills = {} end
     local guid = player:GetGUIDLow()
     if not SkillSystem._virtualSkills[guid] then SkillSystem._virtualSkills[guid] = {} end
@@ -96,6 +106,9 @@ end
 -- Помощник: увеличить навык (skill up)
 function SkillSystem.PlayerSkillUp(player, skillId, amount)
     amount = amount or 1
+    if NightDarkRaven and NightDarkRaven.SkillUp then
+        return NightDarkRaven.SkillUp(player, skillId, amount) or 0
+    end
     local current = SkillSystem.PlayerGetSkillValue(player, skillId)
     local max = SkillSystem.Skills[skillId] and SkillSystem.Skills[skillId].maxLevel or 375
     local newVal = math.min(current + amount, max)
