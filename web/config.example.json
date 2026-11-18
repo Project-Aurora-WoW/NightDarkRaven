@@ -1,7 +1,10 @@
 {
   "server": {
     "port": 3000,
-    "host": "0.0.0.0"
+    "host": "0.0.0.0",
+    "http": true,
+    "https": false,
+    "httpsPort": 3443
   },
   "databases": {
     "auth": {
@@ -27,7 +30,11 @@
     }
   },
   "security": {
-    "corsOrigin": "http://localhost:3000",
+    "corsOrigin": "*",
     "sessionSecret": "night-dark-raven-secret-change-me"
+  },
+  "ssl": {
+    "certPath": "./ssl/certs/nightdarkraven.crt",
+    "keyPath": "./ssl/certs/nightdarkraven.key"
   }
 }

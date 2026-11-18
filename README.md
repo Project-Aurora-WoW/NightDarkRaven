@@ -61,6 +61,9 @@ NightDarkRaven/
 │   ├── package.json
 │   ├── config.example.json
 │   ├── .gitignore
+│   ├── ssl/                    # SSL-сертификаты (самоподписанные для разработки)
+│   │   ├── generate_self_signed.sh
+│   │   └── generate_self_signed.bat
 │   ├── server/
 │   │   ├── index.js
 │   │   ├── config.js
@@ -73,6 +76,12 @@ NightDarkRaven/
 │       ├── index.html
 │       ├── css/style.css
 │       └── js/{api,app}.js
+├── launcher/                   # Лаунчер для WoW 3.3.5a
+│   ├── README.md
+│   ├── config.example.json
+│   ├── launcher.bat            # Batch-лаунчер (Windows)
+│   ├── launcher.ps1            # PowerShell-лаунчер (Windows)
+│   └── patch_realmlist.py      # Патч realmlist.wtf (Python)
 └── tools/                      # Вспомогательные скрипты (импорт, дампы, генераторы)
 ```
 
@@ -224,6 +233,34 @@ npm start
 - Соло-режим и компаньоны (интеграция с Lua-сервером)
 
 Подробнее: `web/README.md`.
+
+## SSL / HTTPS (веб-клиент)
+
+Для разработки можно сгенерировать самоподписанный сертификат:
+```bash
+cd web/ssl
+./generate_self_signed.sh   # Linux/macOS
+generate_self_signed.bat    # Windows
+```
+
+Затем в `web/config.json` включить HTTPS:
+```json
+{
+  "server": { "http": true, "https": true, "httpsPort": 3443 }
+}
+```
+
+В проде замените на сертификат Let's Encrypt или коммерческий.
+
+## Лаунчер WoW 3.3.5a (`launcher/`)
+
+Лаунчер патчит `WTF/realmlist.wtf` клиента и запускает `WoW.exe`:
+```bash
+# Отредактировать launcher/config.json (wowPath, realmlist)
+# Запустить launcher.bat или launcher.ps1
+```
+
+Подробнее: `launcher/README.md`.
 
 ## Лицензия
 Серверный код — AGPLv3 (в соответствии с AzerothCore). Клиент WoW 3.3.5a принадлежит Blizzard Entertainment; данный репозиторий **не содержит** файлов клиента.

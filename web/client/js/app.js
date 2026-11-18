@@ -82,7 +82,10 @@ const app = {
                         <p>${c.race} · ${c.class} · Уровень ${c.level}</p>
                         <p>Зона: ${c.zone} · Онлайн: ${c.online ? 'Да' : 'Нет'}</p>
                     </div>
-                    <div>${c.online ? '<span style="color:#4ade80">●</span>' : '<span style="color:#6b7280">○</span>'}</div>
+                    <div>
+                        <button class="btn btn-primary" onclick="app.selectCharacter(${c.guid}, '${c.name}')" style="margin-right:0.5rem;">Выбрать</button>
+                        ${c.online ? '<span style="color:#4ade80">●</span>' : '<span style="color:#6b7280">○</span>'}
+                    </div>
                 </div>
             `).join('') || '<p>Персонажи не найдены</p>';
         } catch (e) {
@@ -138,23 +141,70 @@ const app = {
         }
     },
 
+    currentCharacterGuid: null,
+
     async loadSoloData() {
         try {
             const companions = await api.getCompanions();
             document.getElementById('companionList').innerHTML = companions.companions.map(c => `
-                <li><strong>${c.name}</strong> — ${c.desc}</li>
+                <li>
+                    <strong>${c.name}</strong> — ${c.desc}
+                    <button class="btn btn-secondary" style="float:right;margin-left:0.5rem;" onclick="app.selectCompanion(${c.entry})">Выбрать</button>
+                </li>
             `).join('');
         } catch (e) {
             document.getElementById('companionList').innerHTML = `<p style="color:#f87171">${e.message}</p>`;
         }
-        document.getElementById('soloStatus').textContent = 'Соло-режим: неактивен (требует интеграции с Lua сервера)';
+
+        // Статус соло-режима для текущего персонажа
+        if (this.currentCharacterGuid) {
+            try {
+                const status = await api.getSoloStatus(this.currentCharacterGuid);
+                document.getElementById('soloStatus').textContent = `Соло-режим: ${status.soloMode ? 'активен' : 'выключен'}`;
+                document.getElementById('soloStatus').style.color = status.soloMode ? '#4ade80' : '#94a3b8';
+                if (status.companion) {
+                    document.getElementById('soloStatus').textContent += ` | Компаньон: #${status.companion}`;
+                }
+            } catch (e) {
+                document.getElementById('soloStatus').textContent = 'Не удалось загрузить статус';
+            }
+        } else {
+            document.getElementById('soloStatus').textContent = 'Выберите персонажа';
+        }
     },
 
     async toggleSolo() {
+        if (!this.currentCharacterGuid) {
+            alert('Сначала выберите персонажа');
+            return;
+        }
         try {
-            const result = await api.toggleSolo(true);
-            document.getElementById('soloStatus').textContent = `Соло-режим: ${result.soloMode ? 'включен' : 'выключен'}`;
+            // Определяем текущий статус и переключаем
+            const status = await api.getSoloStatus(this.currentCharacterGuid);
+            const result = await api.toggleSolo(!status.soloMode, this.currentCharacterGuid);
+            document.getElementById('soloStatus').textContent = `Соло-режим: ${result.soloMode ? 'активен' : 'выключен'}`;
+            document.getElementById('soloStatus').style.color = result.soloMode ? '#4ade80' : '#94a3b8';
             alert(result.message);
+        } catch (e) {
+            alert('Ошибка: ' + e.message);
+        }
+    },
+
+    selectCharacter(guid, name) {
+        this.currentCharacterGuid = guid;
+        document.getElementById('soloStatus').textContent = `Персонаж: ${name}`;
+        this.loadSoloData();
+    },
+
+    async selectCompanion(entry) {
+        if (!this.currentCharacterGuid) {
+            alert('Сначала выберите персонажа');
+            return;
+        }
+        try {
+            const result = await api.companionSelect(this.currentCharacterGuid, entry);
+            alert(result.message);
+            this.loadSoloData();
         } catch (e) {
             alert('Ошибка: ' + e.message);
         }

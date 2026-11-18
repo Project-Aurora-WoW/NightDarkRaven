@@ -1,11 +1,14 @@
 // ============================================================================
-// Ночь темного Ворона — Веб-сервер (Express)
+// Ночь темного Ворона — Веб-сервер (Express + HTTPS опция)
 // Точка входа веб-клиента MMORPG
 // ============================================================================
 
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
 const config = require('./config');
 
 const authRoutes = require('./routes/auth');
@@ -15,6 +18,7 @@ const soloRoutes = require('./routes/solo');
 
 const app = express();
 const PORT = config.server.port || 3000;
+const HTTPS_PORT = config.server.httpsPort || 3443;
 
 // Middleware
 app.use(cors({ origin: config.security.corsOrigin || '*' }));
@@ -50,8 +54,35 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, config.server.host, () => {
-    console.log(`|cff4B0082[Ночь темного Ворона - Web]|r Сервер запущен на http://${config.server.host}:${PORT}`);
-});
+// Запуск HTTP и/или HTTPS
+const servers = [];
+
+if (config.server.http !== false) {
+    const httpServer = http.createServer(app).listen(PORT, config.server.host, () => {
+        console.log(`|cff4B0082[Ночь темного Ворона - Web]|r HTTP сервер на http://${config.server.host}:${PORT}`);
+    });
+    servers.push(httpServer);
+}
+
+if (config.server.https) {
+    try {
+        const httpsOptions = {
+            key: fs.readFileSync(config.ssl.keyPath),
+            cert: fs.readFileSync(config.ssl.certPath)
+        };
+        const httpsServer = https.createServer(httpsOptions, app).listen(HTTPS_PORT, config.server.host, () => {
+            console.log(`|cff4B0082[Ночь темного Ворона - Web]|r HTTPS сервер на https://${config.server.host}:${HTTPS_PORT}`);
+        });
+        servers.push(httpsServer);
+    } catch (err) {
+        console.error(`|cff4B0082[Ночь темного Ворона - Web]|r Ошибка SSL: ${err.message}`);
+        console.warn('Генерируйте сертификат: cd ssl && ./generate_self_signed.sh (или .bat на Windows)');
+    }
+}
+
+if (servers.length === 0) {
+    console.error('Не настроен ни один сервер (HTTP/HTTPS).');
+    process.exit(1);
+}
 
 module.exports = app;

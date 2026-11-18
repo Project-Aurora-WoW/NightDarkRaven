@@ -58,10 +58,17 @@ const api = {
     },
 
     // Соло
-    toggleSolo(enable) {
+    toggleSolo(enable, characterGuid) {
         return this.request('/solo/toggle', {
             method: 'POST',
-            body: JSON.stringify({ enable })
+            body: JSON.stringify({ enable, characterGuid })
+        });
+    },
+
+    companionSelect(characterGuid, companionEntry) {
+        return this.request('/solo/companion', {
+            method: 'POST',
+            body: JSON.stringify({ characterGuid, companionEntry })
         });
     },
 

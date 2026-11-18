@@ -115,3 +115,48 @@ mysql -u root -p world < 06_campaigns_spawns.sql
 (или просто перезапустите `worldserver`).
 
 Координаты спавнов в `06_campaigns_spawns.sql` — примерные (карта 0, рядом со Stormwind). Подставьте реальные координаты под вашу карту/зону перед импортом.
+
+## 9. Интеграция соло-режима с веб-клиентом (Web ↔ Lua)
+
+Для того чтобы веб-клиент мог включать соло-режим, который применяется Lua-сервером:
+
+```bash
+mysql -u root -p world < server/sql/08_solo_integration.sql
+```
+
+Это создаст таблицы `solo_state`, `solo_companions`, `solo_state_log` в БД `world`.
+
+### Как работает
+1. Веб-клиент пишет в `solo_state` (POST `/api/solo/toggle`).
+2. Lua-сервер (`solo_web_sync.lua`) опрашивает `solo_state` каждые 5 секунд.
+3. При обнаружении изменения — применяет соло-режим к игроку в игре.
+
+## 10. Веб-клиент с SSL/HTTPS
+
+### Генерация самоподписанного сертификата (разработка)
+```bash
+cd web/ssl
+./generate_self_signed.sh   # Linux/macOS
+# или
+generate_self_signed.bat    # Windows
+```
+
+### Запуск с HTTPS
+Отредактируйте `web/config.json`:
+```json
+{
+  "server": { "http": true, "https": true, "httpsPort": 3443 }
+}
+```
+Затем `npm start`. Сервер будет доступен на `http://localhost:3000` и `https://localhost:3443`.
+
+В проде замените самоподписанный сертификат на Let's Encrypt или коммерческий.
+
+## 11. Лаунчер WoW 3.3.5a
+
+Папка `launcher/` содержит лаунчер для клиента WoW 3.3.5a:
+- `launcher.bat` / `launcher.ps1` — патчит `realmlist.wtf` и запускает `WoW.exe`
+- `config.json` — путь к WoW, адрес реалма, URL веб-клиента
+- `patch_realmlist.py` — альтернативный патч на Python
+
+Отредактируйте `launcher/config.json`, укажите `wowPath` и `realmlist`, затем запустите лаунчер.

@@ -1,0 +1,8 @@
+{
+  "wowPath": "C:\\Program Files (x86)\\World of Warcraft",
+  "wowExecutable": "WoW.exe",
+  "realmlist": "127.0.0.1",
+  "webUrl": "http://localhost:3000",
+  "openWebClient": true,
+  "launcherTitle": "Ночь темного Ворона — Лаунчер"
+}
