@@ -92,3 +92,26 @@ cp -r /путь/к/NightDarkRaven/server/luaship/NightDarkRaven ac-server/luashi
 - `creature_queststarter` / `creature_questender` (NPC 90001)
 - `item_template` (предмет 90001 "Перо Тени")
 - `creature_loot_template` (моб 90002 дропает перо)
+
+## Кампании (контент мира)
+
+Для развёртывания 11 кампаний примените SQL-файлы по порядку к базе `world`:
+
+```bash
+mysql -u root -p world < 02_campaigns_creatures.sql
+mysql -u root -p world < 03_campaigns_items.sql
+mysql -u root -p world < 04_campaigns_quests.sql
+mysql -u root -p world < 05_campaigns_loot.sql
+mysql -u root -p world < 06_campaigns_spawns.sql
+```
+
+После импорта перезагрузите世界 в игре или сервер:
+```
+.reload quest
+.reload creature
+.reload item
+.reload loot
+```
+(или просто перезапустите `worldserver`).
+
+Координаты спавнов в `06_campaigns_spawns.sql` — примерные (карта 0, рядом со Stormwind). Подставьте реальные координаты под вашу карту/зону перед импортом.
