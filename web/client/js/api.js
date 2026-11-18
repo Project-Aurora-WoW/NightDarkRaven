@@ -94,6 +94,59 @@ const api = {
         return this.request('/admin/logs', { headers: { 'X-GM-Level': '3' } });
     },
 
+    // SQL Импорт API
+    sqlImportStatus() {
+        return this.request('/sqlimport/status', { headers: { 'X-GM-Level': '3' } });
+    },
+
+    sqlImportAll() {
+        return this.request('/sqlimport/import', {
+            method: 'POST',
+            headers: { 'X-GM-Level': '3' },
+            body: JSON.stringify({ importAll: true })
+        });
+    },
+
+    sqlImportNew() {
+        return this.request('/sqlimport/import', {
+            method: 'POST',
+            headers: { 'X-GM-Level': '3' },
+            body: JSON.stringify({ importAll: false })
+        });
+    },
+
+    sqlImportFile(filename) {
+        return this.request('/sqlimport/import-file', {
+            method: 'POST',
+            headers: { 'X-GM-Level': '3' },
+            body: JSON.stringify({ filename })
+        });
+    },
+
+    // Клиентские патчи API
+    clientPatchesList() {
+        return this.request('/clientpatches', { headers: { 'X-GM-Level': '3' } });
+    },
+
+    clientPatchesCreate(patchData) {
+        return this.request('/clientpatches', {
+            method: 'POST',
+            headers: { 'X-GM-Level': '3' },
+            body: JSON.stringify(patchData)
+        });
+    },
+
+    clientPatchesApply(patchId) {
+        return this.request(`/clientpatches/${patchId}/apply`, {
+            method: 'POST',
+            headers: { 'X-GM-Level': '3' }
+        });
+    },
+
+    clientPatchesLog() {
+        return this.request('/clientpatches/log', { headers: { 'X-GM-Level': '3' } });
+    },
+
     // Кампании API
     getCampaigns() {
         return this.request('/campaigns', { headers: { 'X-GM-Level': '3' } });

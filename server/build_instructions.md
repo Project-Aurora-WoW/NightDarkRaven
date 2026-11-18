@@ -238,18 +238,51 @@ API:
 - `GET /api/sqlimport/status` — статус импорта
 - `POST /api/sqlimport/import-file` — импорт одного файла
 
-## 17. Мобильный лаунчер (PWA)
+## 17. Мобильный лаунчер (PWA + нативные приложения)
 
-Папка `launcher/mobile/` — мобильный веб-лаунчер для Android/iOS:
-- Устанавливается на домашний экран через браузер
-- Патчит `realmlist.wtf` (через Android WebView API или симуляцию)
-- Запускает `WoW.exe` (через WebView JS-интерфейс)
-- Открывает веб-клиент
-
-Файлы:
-- `index.html` — интерфейс
-- `style.css` — мобильные стили
-- `app.js` — логика запуска
+### PWA-веб-лаунчер (`launcher/mobile/`)
+Устанавливается на домашний экран через браузер:
+- `index.html`, `style.css`, `app.js` — интерфейс и логика
 - `manifest.json` — манифест PWA
 - `sw.js` — Service Worker
+
+### Нативный Android-лаунчер (Kotlin) (`launcher/native/android/`)
+- `MainActivity.kt` — главная активность с WebView
+- `AndroidLauncherInterface` — JS-интерфейс (`patchRealmlist`, `launchWow`, `openUrl`)
+- `assets/www/` — встроенный веб-лаунчер для WebView
+- Сборка: `./gradlew assembleDebug`
+
+### Нативный iOS-лаунчер (Swift) (`launcher/native/ios/`)
+- `AppDelegate.swift` — точка входа
+- `ContentView.swift` — SwiftUI интерфейс с WKWebView
+- JS-интерфейс `iOSLauncher` для нативных вызовов
+
+## 18. Система патчей клиента через БД
+
+Таблицы `client_patches` и `client_patch_log` в БД `world` (`server/sql/09_client_patches.sql`).
+
+### Возможности
+- Регистрация патчей клиента (realmlist, mpq, config, wtf, db)
+- Отслеживание применённых/неприменённых патчей
+- Лог истории применения
+
+### API
+- `GET /api/clientpatches` — список патчей
+- `POST /api/clientpatches` — создание патча
+- `POST /api/clientpatches/:id/apply — отметить как применённый
+- `GET /api/clientpatches/log` — история
+
+### Lua-сервер
+`systems/client_patch_system.lua` — загружает патчи при старте, может отправлять список клиенту при входе.
+
+## 19. Веб-интерфейс: все разделы админ-панели
+
+| Раздел | Путь | Описание |
+|--------|------|----------|
+| Статистика | `/admin` | Онлайн, персонажи, соло-режимы |
+| Соло-игроки | `/admin` | Управление соло-статусом |
+| Кампании | `/campaigns-admin` | Управление квестами кампаний |
+| SQL Импорт | `/sqlimport` | Автоимпорт `.sql` файлов из `server/sql/` |
+| Патчи клиента | `/clientpatches` | Управление патчами клиента WoW |
+| Логи | `/admin` | История соло-состояний и патчей |
 

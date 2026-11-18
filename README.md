@@ -232,10 +232,13 @@ npm start
 - Просмотр кампаний, зон, подземелий, предметов (БД `world`)
 - Соло-режим и компаньоны (интеграция с Lua-сервером)
 - Админ-панель (`/admin`) — статистика, управление соло-игроками, рестарт сервера (требует GM-прав)
+- Управление квестами кампаний (`/campaigns-admin`) — включение/выключение квестов, изменение уровней
+- Автоимпорт SQL (`/sqlimport`) — импорт `.sql` файлов из `server/sql/` в БД `world`
+- Патчи клиента (`/clientpatches`) — управление патчами клиента WoW 3.3.5a через БД
 - Авто-рестарт WorldServer при изменении Lua-файлов (watcher)
 - Discord уведомления о соло-игроках (webhook)
 
-Подробнее: `web/README.md`.
+Подробнее: `web/README.md` и `server/build_instructions.md` (разделы 17-19).
 
 ## SSL / HTTPS (веб-клиент)
 
@@ -257,11 +260,13 @@ generate_self_signed.bat    # Windows
 
 ## Лаунчер WoW 3.3.5a (`launcher/`)
 
-Лаунчер патчит `WTF/realmlist.wtf` клиента и запускает `WoW.exe`:
-```bash
-# Отредактировать launcher/config.json (wowPath, realmlist)
-# Запустить launcher.bat или launcher.ps1
-```
+| Вариант | Папка | Описание |
+|---------|-------|----------|
+| Десктоп (Windows) | `launcher/` | `launcher.bat` / `launcher.ps1` — патчит `realmlist.wtf` и запускает `WoW.exe` |
+| Мобильный PWA | `launcher/mobile/` | Веб-PWA для Android/iOS, устанавливается на домашний экран |
+| Нативный Android (Kotlin) | `launcher/native/android/` | Нативное приложение с WebView и JS-интерфейсом |
+| Нативный iOS (Swift) | `launcher/native/ios/` | Нативное приложение с WKWebView |
+| Python-патч | `launcher/patch_realmlist.py` | Кросс-платформенный патч `realmlist.wtf` |
 
 Подробнее: `launcher/README.md`.
 

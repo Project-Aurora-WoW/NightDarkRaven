@@ -1,0 +1,137 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 52;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1234567890ABCDEF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1234567890ABCDE0 /* AppDelegate.swift */; };
+		1234567890ABCDE1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1234567890ABCDE2 /* ContentView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1234567890ABCDE0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		1234567890ABCDE2 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		1234567890ABCDE3 /* Runner */ = {
+			isa = PBXGroup;
+			children = (
+				1234567890ABCDE0 /* AppDelegate.swift */,
+				1234567890ABCDE2 /* ContentView.swift */,
+			);
+			path = Runner;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXProject section */
+		1234567890ABCDE4 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					1234567890ABCDE5 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = 1234567890ABCDE6 /* Build configuration list for PBXProject "Runner" */;
+			compatibilityVersion = "Xcode 13.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 1234567890ABCDE3 /* Runner */;
+			productReference = 1234567890ABCDE7 /* Runner.app */;
+			productName = Runner;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXProject section */
+
+/* Begin PBXNativeTarget section */
+		1234567890ABCDE5 /* Runner */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1234567890ABCDE8 /* Build configuration list for PBXNativeTarget "Runner" */;
+			buildPhases = (
+				1234567890ABCDE9 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Runner;
+			productName = Runner;
+			productReference = 1234567890ABCDE7 /* Runner.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1234567890ABCDE9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildFiles = (
+				1234567890ABCDEF /* AppDelegate.swift in Sources */,
+				1234567890ABCDE1 /* ContentView.swift in Sources */,
+			);
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1234567890ABCDEA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		1234567890ABCDEB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		1234567890ABCDEC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_KEY_CFBundleDisplayName = "Ночь темного Ворона";
+			};
+			name = Debug;
+		};
+		1234567890ABCDED /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_KEY_CFBundleDisplayName = "Ночь темного Ворона";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1234567890ABCDE6 /* Build configuration list for PBXProject "Runner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1234567890ABCDEA /* Debug */,
+				1234567890ABCDEB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationIsVisible = 0;
+		};
+		1234567890ABCDE8 /* Build configuration list for PBXNativeTarget "Runner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1234567890ABCDEC /* Debug */,
+				1234567890ABCDED /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+	};
+/* End XCConfigurationList section */
+}

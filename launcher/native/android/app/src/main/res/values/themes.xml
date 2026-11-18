@@ -1,0 +1,8 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.NightDarkRavenLauncher" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="colorPrimary">#7B2CBF</item>
+        <item name="colorPrimaryVariant">#5B1AA5</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="android:windowBackground">#0F0D1A</item>
+    </style>
+</resources>

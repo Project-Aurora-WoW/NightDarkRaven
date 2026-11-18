@@ -19,6 +19,7 @@ const soloRoutes = require('./routes/solo');
 const adminRoutes = require('./routes/admin');
 const campaignsRoutes = require('./routes/campaigns');
 const sqlimportRoutes = require('./routes/sqlimport');
+const clientpatchesRoutes = require('./routes/clientpatches');
 
 const DiscordService = require('./services/discord_service');
 const WatcherService = require('./services/watcher_service');
@@ -54,6 +55,7 @@ app.use('/api/solo', soloRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/campaigns', campaignsRoutes);
 app.use('/api/sqlimport', sqlimportRoutes);
+app.use('/api/clientpatches', clientpatchesRoutes);
 
 // Главная страница — отдаём веб-клиент
 app.get('/', (req, res) => {

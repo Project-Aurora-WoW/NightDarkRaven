@@ -18,6 +18,7 @@ local CompanionSystem = require("NightDarkRaven.systems.companion_system")
 local ScalingSystem= require("NightDarkRaven.systems.scaling_system")
 local SoloDungeonSystem = require("NightDarkRaven.systems.solo_dungeon_system")
 local SoloWebSync  = require("NightDarkRaven.systems.solo_web_sync")
+local ClientPatchSystem = require("NightDarkRaven.systems.client_patch_system")
 
 function NightDarkRaven.OnLoad()
     print("|cff4B0082[NightDarkRaven]|r Загрузка модуля v" .. NightDarkRaven.Version .. "...")
@@ -32,6 +33,7 @@ function NightDarkRaven.OnLoad()
     ScalingSystem.Init()
     SoloDungeonSystem.Init()
     SoloWebSync.Init()
+    ClientPatchSystem.Init()
 
     print("|cff4B0082[NightDarkRaven]|r Модуль загружен успешно.")
 end

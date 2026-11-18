@@ -23,6 +23,8 @@
             <div class="nav-item" data-section="campaigns">Кампании</div>
             <div class="nav-item" data-section="admin" style="color:#f87171;">Админ</div>
             <div class="nav-item" data-section="campaigns-admin" style="color:#a78bfa;">Кампании</div>
+            <div class="nav-item" data-section="sqlimport" style="color:#4ade80;">SQL Импорт</div>
+            <div class="nav-item" data-section="clientpatches" style="color:#bb86fc;">Патчи клиента</div>
         </nav>
 
         <!-- Основной контент -->
@@ -114,6 +116,59 @@
                 </div>
                 <div style="margin-top:1rem; font-size:0.8rem; color:var(--text-muted);">
                     Для доступа требуются права GM (заголовок X-GM-Level >= 1).
+                </div>
+            </section>
+
+            <!-- Патчи клиента -->
+            <section id="section-clientpatches" class="section hidden">
+                <h2>📦 Патчи клиента WoW 3.3.5a</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Список патчей</h3>
+                        <div id="clientPatchesList">Загрузка...</div>
+                        <button class="btn btn-secondary" onclick="app.loadClientPatches()">Обновить</button>
+                    </div>
+                    <div class="card">
+                        <h3>Создать патч</h3>
+                        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                            <input type="text" id="cpName" placeholder="Название патча" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
+                            <input type="text" id="cpType" placeholder="Тип (realmlist/mpq/config/wtf/db)" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
+                            <input type="text" id="cpTargetFile" placeholder="Целевой файл (например, realmlist.wtf)" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
+                            <textarea id="cpContent" placeholder="Содержимое патча" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%; min-height:80px;"></textarea>
+                            <button class="btn btn-primary" onclick="app.clientPatchesCreate()">Создать патч</button>
+                            <div id="cpMessage"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>История применения</h3>
+                        <div id="clientPatchesLog" style="max-height:200px; overflow-y:auto; font-size:0.85rem; color:var(--text-muted);">Загрузка...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SQL Импорт -->
+            <section id="section-sqlimport" class="section hidden">
+                <h2>📦 Автоимпорт SQL</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Статус импорта</h3>
+                        <div id="sqlImportStatus">Загрузка...</div>
+                        <button class="btn btn-primary" onclick="app.sqlImportAll()">Импортировать все</button>
+                        <button class="btn btn-secondary" onclick="app.sqlImportNew()">Импортировать новые</button>
+                        <button class="btn btn-secondary" onclick="app.sqlImportStatus()">Обновить статус</button>
+                    </div>
+                    <div class="card">
+                        <h3>Импорт одного файла</h3>
+                        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                            <input type="text" id="sqlFileName" placeholder="Имя файла (например, 07_campaigns_solo.sql)" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
+                            <button class="btn btn-primary" onclick="app.sqlImportFile()">Импортировать файл</button>
+                            <div id="sqlFileMessage"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>История импорта</h3>
+                        <div id="sqlImportLog" style="max-height:200px; overflow-y:auto; font-size:0.85rem; color:var(--text-muted);">Загрузка...</div>
+                    </div>
                 </div>
             </section>
 
