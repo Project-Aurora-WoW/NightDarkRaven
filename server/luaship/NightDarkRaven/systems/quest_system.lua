@@ -5,6 +5,7 @@
 
 local CompanionSystem = require("NightDarkRaven.systems.companion_system")
 local SoloSystem = require("NightDarkRaven.systems.solo_system")
+local SoloDungeonSystem = require("NightDarkRaven.systems.solo_dungeon_system")
 
 local QuestSystem = {}
 
@@ -254,10 +255,40 @@ function QuestSystem.GetItemName(itemEntry)
     return names[itemEntry]
 end
 
--- Универсальный обработчик gossip для дачителей кампаний
+-- Универсальный обработчик gossip для дачителей кампаний и приручаемых мобов
 function QuestSystem.OnGossipHello(event, player, creature)
     local npcEntry = creature:GetEntry()
     local camp = QuestSystem.GetCampaignByNPC(npcEntry)
+
+    -- Если это приручаемый моб (компаньон)
+    local tameTargets = SkillSystem.GetTameTargets(90005)
+    local isTameable = false
+    local tameTargetInfo = nil
+    for _, tt in ipairs(tameTargets) do
+        if tt.mobEntry == npcEntry then
+            isTameable = true
+            tameTargetInfo = tt
+            break
+        end
+    end
+
+    if isTameable then
+        local playerSkill = SkillSystem.PlayerGetSkillValue(player, 90005)
+        local canTame = playerSkill >= tameTargetInfo.minSkill
+        local alreadyTamed = creature:GetFaction() == 35
+
+        if alreadyTamed then
+            player:GossipMenuAddItem(0, "Это существо уже ваш компаньон.", 0, 255)
+        elseif not canTame then
+            player:GossipMenuAddItem(0, string.format("Приручить %s (нужен навык %d/%d)", tameTargetInfo.desc, playerSkill, tameTargetInfo.minSkill), 0, 255)
+        else
+            player:GossipMenuAddItem(0, string.format("Приручить %s (навык %d, шанс %d%%)", tameTargetInfo.desc, playerSkill, SkillSystem.CalculateTameChance(playerSkill, tameTargetInfo.minSkill)), 0, 7000 + npcEntry)
+        end
+        player:GossipMenuAddItem(0, "Ничего", 0, 255)
+        player:GossipSendMenu(90001, creature)
+        return
+    end
+
     if not camp then return end
 
     local canStartSolo = false
@@ -279,6 +310,9 @@ function QuestSystem.OnGossipHello(event, player, creature)
         if player:HasQuest(95002) then
             player:GossipMenuAddItem(0, "Я приручил Теневого Ворона", 0, 95002 * 10 + 2)
         end
+
+        -- Просмотр навыков
+        player:GossipMenuAddItem(0, "Посмотреть мои навыки", 0, 60001)
     end
 
     -- Обычные квесты кампаний
@@ -311,7 +345,37 @@ end
 function QuestSystem.OnGossipSelect(event, player, creature, sender, intid, code)
     local npcEntry = creature:GetEntry()
     local camp = QuestSystem.GetCampaignByNPC(npcEntry)
+
+    -- Обработка приручения моба (action = 7000 + npcEntry)
+    if intid >= 7001 and intid <= 7126 then
+        local tameMobEntry = intid - 7000
+        CompanionSystem.AttemptTame(player, creature)
+        player:GossipComplete()
+        return
+    end
+
     if not camp then return end
+
+    -- Вход в соло-подземелья (action = 8000 + dungeonId)
+    if intid >= 8001 and intid <= 8003 then
+        local dungeonId = intid - 8000
+        SoloDungeonSystem.EnterSoloDungeon(player, dungeonId)
+        player:GossipComplete()
+        return
+    end
+
+    -- Просмотр навыков (action = 60001)
+    if intid == 60001 then
+        local skills = {}
+        for skillId, skillInfo in pairs(SkillSystem.Skills) do
+            local currentLevel = SkillSystem.PlayerGetSkillValue(player, skillId)
+            table.insert(skills, string.format("|cffffd700%s:|r %d/%d", skillInfo.name, currentLevel, skillInfo.maxLevel))
+        end
+        local skillsText = table.concat(skills, "\n")
+        creature:SendUnitSay(string.format("Ваши навыки:\n%s", skillsText), 0)
+        player:GossipComplete()
+        return
+    end
 
     -- Соло-квесты (Темный Ворон)
     if npcEntry == 90001 then
