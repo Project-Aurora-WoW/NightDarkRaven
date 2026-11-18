@@ -1,0 +1,3 @@
+set realmlist logon.nightdarkraven.ru
+; Для локального теста раскомментируйте строку ниже и закомментируйте верхнюю:
+; set realmlist 127.0.0.1
