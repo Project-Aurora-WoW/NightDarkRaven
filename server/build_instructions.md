@@ -108,6 +108,11 @@ mysql -u root -p world < 08_solo_integration.sql
 mysql -u root -p world < 09_client_patches.sql
 mysql -u root -p world < 10_legendary_stones.sql
 mysql -u root -p world < 11_illidans_lessons.sql
+mysql -u root -p world < 14_additional_creatures.sql
+mysql -u root -p world < 15_additional_items.sql
+mysql -u root -p world < 16_additional_quests.sql
+mysql -u root -p world < 17_additional_loot.sql
+mysql -u root -p world < 18_additional_spawns.sql
 ```
 
 После импорта перезагрузите世界 в игре или сервер:
