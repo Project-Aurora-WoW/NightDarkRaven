@@ -56,7 +56,13 @@ NightDarkRaven/
 ├── client/                     # Файлы клиента WoW 3.3.5a (не включает сам клиент)
 │   ├── configs/
 │   │   └── realmlist.wtf
-│   └── patches/                # Кастомные MPQ/ патчи клиента (опционально)
+│   ├── patches/                # Кастомные MPQ/ патчи клиента (опционально)
+│   └── custom_content/         # Кастомные модели, текстуры и MPQ архив клиента
+│       ├── README.md
+│       ├── models/             # Кастомные 3D модели (.mdl, .m2)
+│       ├── textures/           # Кастомные текстуры (.blp)
+│       ├── mpq/                # Сборка MPQ архива (build_mpq.bat/.sh)
+│       └── tools/              # Инструменты конвертации (m2, blp)
 ├── web/                        # Веб-клиент (Node.js + Express + Vanilla JS)
 │   ├── README.md
 │   ├── package.json
@@ -270,6 +276,49 @@ generate_self_signed.bat    # Windows
 | Python-патч | `launcher/patch_realmlist.py` | Кросс-платформенный патч `realmlist.wtf` |
 
 Подробнее: `launcher/README.md`.
+
+## Кастомные MPQ ресурсы клиента (`client/custom_content/`)
+
+Кастомные модели, текстуры и MPQ архив для клиента WoW 3.3.5a.
+
+### ⚠️ Важно
+
+Сам клиент WoW 3.3.5a и его оригинальные ресурсы **НЕ входят** в этот репозиторий (авторские права Blizzard Entertainment). Эта папка содержит инструменты, шаблоны и инструкции для создания собственных ресурсов на основе уже установленного у вас клиента.
+
+### Структура
+
+```
+client/custom_content/
+├── README.md         # Полная инструкция по созданию MPQ
+├── models/           # Кастомные 3D модели (.mdl, .m2)
+├── textures/         # Кастомные текстуры (.blp)
+├── mpq/              # Сборка MPQ архива (build_mpq.bat/.sh)
+└── tools/            # Инструменты конвертации (m2, blp)
+```
+
+### Быстрый старт
+
+1. Установите клиент WoW 3.3.5a (build 12340)
+2. Создайте кастомные модели и текстуры (инструкции в `client/custom_content/mpq/README.md`)
+3. Соберите их в `patch.MPQ` с помощью скриптов в `client/custom_content/mpq/`
+4. Положите `patch.MPQ` в папку с `WoW.exe` (рядом с клиентом)
+5. Запустите клиент — кастомные ресурсы загрузятся автоматически
+
+### Связь с сервером AzerothCore
+
+Для кастомной модели NPC в базе данных:
+
+```sql
+INSERT INTO `creature_template` (`entry`, `name`, `modelid_1`, `faction`, `npcflag`) VALUES
+(92001, 'Кастомный Ворон', 25001, 35, 1);
+```
+
+Где `25001` — это `displayid` вашей кастомной модели в клиенте.
+
+### Подробнее
+
+`client/custom_content/README.md`  
+`client/custom_content/mpq/README.md`
 
 ## Админ-панель, Discord и авто-рестарт
 
