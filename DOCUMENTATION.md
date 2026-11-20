@@ -719,14 +719,132 @@ mysql -u root -p < ac-server/data/sql/create/mysql_create.sql
 
 ---
 
-## 16. Быстрый старт
+## 16. Клиентский аддон WoW 3.3.5a (`client/addon/`)
+
+Полноценный аддон для клиента World of Warcraft 3.3.5a с интеграцией всех серверных механик AzerothCore.
+
+### 16.1 Установка
+
+1. Скопируйте папку `client/addon/NightDarkRaven/` в папку с клиентом WoW:
+   ```
+   World of Warcraft/Interface/AddOns/NightDarkRaven/
+   ```
+2. Запустите клиент WoW 3.3.5a
+3. В окне выбора персонажа нажмите «Аддоны» и убедитесь, что «Ночь темного Ворона» включен
+4. Войдите в игру
+
+### 16.2 Команды чата
+
+| Команда | Описание |
+|---------|----------|
+| `/ndr` | Открыть главное окно аддона |
+| `/ndr solo` | Включить/выключить соло-режим |
+| `/ndr companion` | Открыть меню компаньонов |
+| `/ndr campaign` | Открыть меню кампаний |
+| `/ndr dungeon` | Показать соло-подземелья |
+| `/ndr help` | Справка по командам |
+
+### 16.3 Возможности аддона
+
+| Возможность | Описание |
+|-------------|----------|
+| Соло-режим | Включение/выключение адаптации сложности под одного игрока (-40% HP мобов, -30% урона, +20% опыта) |
+| Компаньоны | Призыв Теневого Ворона, Стража Ночи, Целителя Лунного |
+| Кампании | Просмотр всех 15 кампаний с квестами |
+| Соло-подземелья | Телепортация в соло-подземелья (10-80 уровень) |
+| Главное окно | Быстрый доступ ко всем функциям аддона |
+
+### 16.4 Структура аддона
+
+```
+client/addon/NightDarkRaven/
+├── NightDarkRaven.toc      # Манифест аддона
+├── NightDarkRaven.lua      # Основная логика аддона
+└── NightDarkRaven.xml      # XML оформление интерфейса
+```
+
+---
+
+## 17. База данных — порядок импорта
+
+Импортируйте в базу `world` в следующем порядке:
+
+```bash
+# 1. Мобы и NPC
+mysql -u root -p world < server/sql/02_campaigns_creatures.sql
+
+# 2. Предметы
+mysql -u root -p world < server/sql/03_campaigns_items.sql
+
+# 3. Квесты кампаний + соло
+mysql -u root -p world < server/sql/04_campaigns_quests.sql
+
+# 4. Лут мобов
+mysql -u root -p world < server/sql/05_campaigns_loot.sql
+
+# 5. Спавны
+mysql -u root -p world < server/sql/06_campaigns_spawns.sql
+
+# 6. Соло-предметы и соло-квесты
+mysql -u root -p world < server/sql/07_campaigns_solo.sql
+
+# 7. Таблицы соло-состояния
+mysql -u root -p world < server/sql/08_solo_integration.sql
+
+# 8. Таблицы патчей клиента
+mysql -u root -p world < server/sql/09_client_patches.sql
+
+# 9. Камни Легенды и Уроки Иллидана
+mysql -u root -p world < server/sql/10_legendary_stones.sql
+mysql -u root -p world < server/sql/11_illidans_lessons.sql
+
+# 10. Дополнительный контент (кампании 12-15)
+mysql -u root -p world < server/sql/14_additional_creatures.sql
+mysql -u root -p world < server/sql/15_additional_items.sql
+mysql -u root -p world < server/sql/16_additional_quests.sql
+mysql -u root -p world < server/sql/17_additional_loot.sql
+mysql -u root -p world < server/sql/18_additional_spawns.sql
+```
+
+Также создайте базы `auth` и `characters` из схемы AzerothCore:
+```bash
+mysql -u root -p < ac-server/data/sql/create/auth_create.sql
+mysql -u root -p < ac-server/data/sql/create/characters_create.sql
+mysql -u root -p < ac-server/data/sql/create/mysql_create.sql
+```
+
+---
+
+## 18. Lua-модуль — структура подсистем
+
+| Подсистема | Файл | Основные функции |
+|------------|------|------------------|
+| Предметы | `systems/item_system.lua` | `GetItemInfo(entry)` |
+| Навыки | `systems/skill_system.lua` | `PlayerKnowsSkill()`, `PlayerGetSkillValue()`, `CalculateTameChance()` |
+| Квесты | `systems/quest_system.lua` | `OnGossipHello()`, `OnGossipSelect()`, `CheckItemRequirements()`, `GiveQuestReward()` |
+| Зоны | `systems/zone_system.lua` | `GetZoneInfo()`, `IsInZone()`, `GetTeleport()` |
+| Подземелья | `systems/dungeon_system.lua` | `GetDungeonInfo()`, `GetBosses()` |
+| Соло-режим | `systems/solo_system.lua` | `EnableSoloMode()`, `DisableSoloMode()`, `IsSoloMode()` |
+| Компаньоны | `systems/companion_system.lua` | `SpawnCompanion()`, `DismissCompanion()`, `AttemptTame()` |
+| Масштабирование | `systems/scaling_system.lua` | `GetMobCountReduce()`, `GetQuestItemReduce()` |
+| Соло-подземелья | `systems/solo_dungeon_system.lua` | `EnterSoloDungeon()`, `ExitSoloDungeon()` |
+| Синхронизация соло | `systems/solo_web_sync.lua` | `ApplySoloMode()`, `OnPlayerLogin()` |
+| Патчи клиента | `systems/client_patch_system.lua` | `LoadPatches()`, `OnPlayerLogin()`, `ApplyPatchByGM()` |
+| Патчи для лаунчера | `systems/client_patch_launcher.lua` | `GetPatchForDownload()`, `GetUnappliedForLauncher()` |
+| Предметы с сокетами | `systems/item_socket_system.lua` | `SocketGem()`, `UnsocketGem()` |
+| Камни Легенды | `systems/legendary_stones_system.lua` | `GetStoneInfo()`, `ApplyStoneEffect()` |
+| Уроки Иллидана | `systems/illidans_lessons_system.lua` | `StartLesson()`, `CompleteLesson()` |
+
+---
+
+## 19. Быстрый старт
 
 ### Сервер
 1. Установить AzerothCore (ветка wotlk)
 2. Собрать с поддержкой Lua/Eluna: `-DWITH_SCRIPTING=ON -DWITH_LUA=ON`
 3. Скопировать `server/luaship/NightDarkRaven/` в `ac-server/luaship/`
 4. Создать БД `auth`, `characters`, `world`
-5. Импортировать SQL файлы (раздел 14)
+5. Импортировать SQL файлы (раздел 17)
 6. Настроить `worldserver.conf` и `authserver.conf`
 7. Запустить `authserver` и `worldserver`
 
@@ -735,10 +853,11 @@ mysql -u root -p < ac-server/data/sql/create/mysql_create.sql
 2. `cp config.example.json config.json` — отредактировать пароли к MySQL
 3. `npm start` — доступно на `http://localhost:3000`
 
-### Клиент WoW
+### Клиент WoW 3.3.5a
 1. Установить WoW 3.3.5a
-2. В `WTF/realmlist.wtf`: `set realmlist 127.0.0.1`
-3. Запустить `WoW.exe`
+2. Скопировать `client/addon/NightDarkRaven/` в `World of Warcraft/Interface/AddOns/`
+3. В `WTF/realmlist.wtf`: `set realmlist 127.0.0.1`
+4. Запустить `WoW.exe` и включить аддон «Ночь темного Ворона» в меню аддонов
 
 ### Мобильный лаунчер
 1. Открыть `launcher/mobile/index.html` в браузере на телефоне
@@ -747,4 +866,4 @@ mysql -u root -p < ac-server/data/sql/create/mysql_create.sql
 
 ---
 
-*Документация актуальна для версии 1.1.0 проекта «Ночь темного Ворона»*
+*Документация актуальна для версии 1.2.0 проекта «Ночь темного Ворона»*

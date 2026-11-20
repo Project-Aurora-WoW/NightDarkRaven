@@ -1,0 +1,6 @@
+## Interface: 30300
+## Title: Ночь темного Ворона
+## Notes: Серверный аддон для AzerothCore - Ночь темного Ворона
+## Author: NightDarkRaven Team
+## Version: 1.2.0
+## SavedVariables: NightDarkRavenDB
