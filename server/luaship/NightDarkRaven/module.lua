@@ -25,6 +25,7 @@ local IllidanLessonsSystem = require("NightDarkRaven.systems.illidans_lessons_sy
 local ItemSocketSystem = require("NightDarkRaven.systems.item_socket_system")
 local NightEventSystem = require("NightDarkRaven.systems.night_event_system")
 local Translator = require("NightDarkRaven.localization.lua.translator")
+local CampaignProgressSystem = require("NightDarkRaven.systems.campaign_progress_system")
 
 function NightDarkRaven.OnLoad()
     print("|cff4B0082[NightDarkRaven]|r Загрузка модуля v" .. NightDarkRaven.Version .. "...")
@@ -48,6 +49,7 @@ function NightDarkRaven.OnLoad()
     IllidanLessonsSystem.Init()
     ItemSocketSystem.Init()
     NightEventSystem.Init()
+    CampaignProgressSystem.Init()
 
     print("|cff4B0082[NightDarkRaven]|r Модуль загружен успешно.")
 end
