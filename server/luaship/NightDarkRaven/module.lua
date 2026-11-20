@@ -24,9 +24,13 @@ local LegendaryStonesSystem = require("NightDarkRaven.systems.legendary_stones_s
 local IllidanLessonsSystem = require("NightDarkRaven.systems.illidans_lessons_system")
 local ItemSocketSystem = require("NightDarkRaven.systems.item_socket_system")
 local NightEventSystem = require("NightDarkRaven.systems.night_event_system")
+local Translator = require("NightDarkRaven.localization.lua.translator")
 
 function NightDarkRaven.OnLoad()
     print("|cff4B0082[NightDarkRaven]|r Загрузка модуля v" .. NightDarkRaven.Version .. "...")
+
+    -- Загрузить язык по умолчанию (русский)
+    Translator.LoadLang("ru-RU")
 
     ItemSystem.Init()
     SkillSystem.Init()

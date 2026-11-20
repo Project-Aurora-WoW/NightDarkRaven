@@ -1,0 +1,42 @@
+/* ============================================================================
+   Ночь темного Ворона — Стили для i18n (международная поддержка)
+   ============================================================================ */
+
+.lang-selector {
+    display: flex;
+    align-items: center;
+}
+
+.lang-selector select {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border, #2e2a47);
+    border-radius: 6px;
+    color: var(--text, #e9e4f0);
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    outline: none;
+}
+
+.lang-selector select:focus {
+    border-color: var(--accent, #7b2cbf);
+}
+
+.lang-selector option {
+    background: #1a172e;
+    color: var(--text, #e9e4f0);
+}
+
+/* Атрибут data-i18n для динамического перевода */
+[data-i18n] {
+    /* Содержимое будет заменено через JS */
+}
+
+/* Плавный переход при смене языка */
+[data-i18n], [data-i18n-title], [data-i18n-placeholder] {
+    transition: opacity 0.2s ease;
+}
+
+[data-i18n].loading {
+    opacity: 0.5;
+}

@@ -7,6 +7,7 @@ local CompanionSystem = require("NightDarkRaven.systems.companion_system")
 local SoloSystem = require("NightDarkRaven.systems.solo_system")
 local SoloDungeonSystem = require("NightDarkRaven.systems.solo_dungeon_system")
 local SkillSystem = require("NightDarkRaven.systems.skill_system")
+local Translator = require("NightDarkRaven.localization.lua.translator")
 
 local QuestSystem = {}
 

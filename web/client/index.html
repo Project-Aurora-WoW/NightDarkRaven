@@ -3,64 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ночь темного Ворона — Веб-клиент</title>
+    <title data-i18n="app.title">Ночь темного Ворона — Веб-клиент</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../../localization/web/i18n.css">
 </head>
 <body>
     <div class="app">
         <!-- Шапка -->
         <header class="header">
-            <div class="logo">🌙 Ночь темного Ворона</div>
-            <div class="status" id="serverStatus">Проверка сервера...</div>
+            <div class="logo" data-i18n="app.logo">🌙 Ночь темного Ворона</div>
+            <div class="status" id="serverStatus" data-i18n="app.server_online">Сервер онлайн</div>
+            <!-- Селектор языка -->
+            <div class="lang-selector" style="margin-left: 1rem;">
+                <select id="langSelect" onchange="I18n.loadLang(this.value)">
+                    <option value="ru-RU">Русский</option>
+                    <option value="en-US">English</option>
+                </select>
+            </div>
         </header>
 
         <!-- Боковая навигация -->
         <nav class="nav">
-            <div class="nav-item active" data-section="login">Вход</div>
-            <div class="nav-item" data-section="characters">Персонажи</div>
-            <div class="nav-item" data-section="world">Мир</div>
-            <div class="nav-item" data-section="solo">Соло-режим</div>
-            <div class="nav-item" data-section="campaigns">Кампании</div>
-            <div class="nav-item" data-section="admin" style="color:#f87171;">Админ</div>
-            <div class="nav-item" data-section="campaigns-admin" style="color:#a78bfa;">Кампании</div>
-            <div class="nav-item" data-section="sqlimport" style="color:#4ade80;">SQL Импорт</div>
-            <div class="nav-item" data-section="clientpatches" style="color:#bb86fc;">Патчи клиента</div>
+            <div class="nav-item active" data-section="login" data-i18n="nav.login">Вход</div>
+            <div class="nav-item" data-section="characters" data-i18n="nav.characters">Персонажи</div>
+            <div class="nav-item" data-section="world" data-i18n="nav.world">Мир</div>
+            <div class="nav-item" data-section="solo" data-i18n="nav.solo">Соло-режим</div>
+            <div class="nav-item" data-section="campaigns" data-i18n="nav.campaigns">Кампании</div>
+            <div class="nav-item" data-section="admin" style="color:#f87171;" data-i18n="nav.admin">Админ</div>
+            <div class="nav-item" data-section="campaigns-admin" style="color:#a78bfa;" data-i18n="nav.campaigns_admin">Кампании</div>
+            <div class="nav-item" data-section="sqlimport" style="color:#4ade80;" data-i18n="nav.sqlimport">SQL Импорт</div>
+            <div class="nav-item" data-section="clientpatches" style="color:#bb86fc;" data-i18n="nav.clientpatches">Патчи клиента</div>
         </nav>
 
         <!-- Основной контент -->
         <main class="main">
             <!-- Вход -->
             <section id="section-login" class="section">
-                <h2>Вход в аккаунт</h2>
+                <h2 data-i18n="login.title">Вход в аккаунт</h2>
                 <div class="card">
-                    <input type="text" id="loginUsername" placeholder="Логин">
-                    <input type="password" id="loginPassword" placeholder="Пароль">
-                    <button class="btn btn-primary" onclick="app.login()">Войти</button>
+                    <input type="text" id="loginUsername" placeholder="" data-i18n-placeholder="login.username">
+                    <input type="password" id="loginPassword" placeholder="" data-i18n-placeholder="login.password">
+                    <button class="btn btn-primary" onclick="app.login()" data-i18n="login.login_button">Войти</button>
                 </div>
                 <div id="loginMessage"></div>
             </section>
 
             <!-- Персонажи -->
             <section id="section-characters" class="section hidden">
-                <h2>Персонажи</h2>
+                <h2 data-i18n="characters.title">Персонажи</h2>
                 <div class="char-list" id="charList">Загрузка...</div>
-                <button class="btn btn-secondary" onclick="app.refreshChars()">Обновить</button>
+                <button class="btn btn-secondary" onclick="app.refreshChars()" data-i18n="characters.refresh">Обновить</button>
             </section>
 
             <!-- Мир -->
             <section id="section-world" class="section hidden">
-                <h2>Мир Ночи темного Ворона</h2>
+                <h2 data-i18n="world.title">Мир Ночи темного Ворона</h2>
                 <div class="grid">
                     <div class="card">
-                        <h3>Зоны</h3>
+                        <h3 data-i18n="world.zones">Зоны</h3>
                         <div id="zoneList">Загрузка...</div>
                     </div>
                     <div class="card">
-                        <h3>Подземелья</h3>
+                        <h3 data-i18n="world.dungeons">Подземелья</h3>
                         <div id="dungeonList">Загрузка...</div>
                     </div>
                     <div class="card">
-                        <h3>Предметы</h3>
+                        <h3 data-i18n="world.items">Предметы</h3>
                         <div id="itemList">Загрузка...</div>
                     </div>
                 </div>
@@ -68,79 +76,79 @@
 
             <!-- Соло-режим -->
             <section id="section-solo" class="section hidden">
-                <h2>Соло-режим</h2>
+                <h2 data-i18n="solo.title">Соло-режим</h2>
                 <div class="card">
-                    <h3>Компаньоны</h3>
+                    <h3 data-i18n="solo.companions">Компаньоны</h3>
                     <div id="companionList">Загрузка...</div>
-                    <button class="btn btn-primary" onclick="app.toggleSolo()">Переключить соло-режим</button>
+                    <button class="btn btn-primary" onclick="app.toggleSolo()" data-i18n="solo.toggle">Переключить соло-режим</button>
                 </div>
                 <div id="soloStatus">Соло-режим: выключен</div>
             </section>
 
             <!-- Кампании -->
             <section id="section-campaigns" class="section hidden">
-                <h2>Кампании (11)</h2>
+                <h2 data-i18n="campaigns.title">Кампании (11)</h2>
                 <div class="campaign-list" id="campaignList">Загрузка...</div>
             </section>
 
             <!-- Админ-панель -->
             <section id="section-admin" class="section hidden">
-                <h2>⚙️ Админ-панель</h2>
+                <h2 data-i18n="admin.title">⚙️ Админ-панель</h2>
                 <div class="grid">
                     <div class="card">
-                        <h3>Статистика</h3>
+                        <h3 data-i18n="admin.stats">Статистика</h3>
                         <div id="adminStats">Загрузка...</div>
-                        <button class="btn btn-secondary" onclick="app.loadAdminStats()">Обновить</button>
+                        <button class="btn btn-secondary" onclick="app.loadAdminStats()" data-i18n="admin.refresh">Обновить</button>
                     </div>
                     <div class="card">
-                        <h3>Соло-игроки</h3>
+                        <h3 data-i18n="admin.solo_players">Соло-игроки</h3>
                         <div id="adminSoloList">Загрузка...</div>
-                        <button class="btn btn-secondary" onclick="app.loadAdminSolo()">Обновить</button>
+                        <button class="btn btn-secondary" onclick="app.loadAdminSolo()" data-i18n="admin.refresh">Обновить</button>
                     </div>
                     <div class="card">
-                        <h3>Управление</h3>
+                        <h3 data-i18n="admin.management">Управление</h3>
                         <div style="display:flex; flex-direction:column; gap:0.5rem;">
-                            <input type="text" id="adminCharGuid" placeholder="GUID персонажа" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
+                            <input type="text" id="adminCharGuid" placeholder="" data-i18n-placeholder="admin.char_guid" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
                             <label style="font-size:0.85rem; color:var(--text-muted); margin:0.25rem 0;">
-                                <input type="checkbox" id="adminSoloToggle" style="margin-right:0.5rem;"> Активен соло-режим
+                                <input type="checkbox" id="adminSoloToggle" style="margin-right:0.5rem;"> <span data-i18n="admin.solo_toggle">Активен соло-режим</span>
                             </label>
-                            <button class="btn btn-primary" onclick="app.adminToggleSolo()">Применить соло</button>
-                            <button class="btn btn-secondary" onclick="app.adminRestart()" style="margin-top:1rem;">Рестарт WorldServer</button>
+                            <button class="btn btn-primary" onclick="app.adminToggleSolo()" data-i18n="admin.apply_solo">Применить соло</button>
+                            <button class="btn btn-secondary" onclick="app.adminRestart()" style="margin-top:1rem;" data-i18n="admin.restart_server">Рестарт WorldServer</button>
                         </div>
                         <div id="adminActionMessage"></div>
                     </div>
                     <div class="card">
-                        <h3>Логи соло-состояний</h3>
+                        <h3 data-i18n="admin.logs">Логи соло-состояний</h3>
                         <div id="adminLogs" style="max-height:200px; overflow-y:auto; font-size:0.85rem; color:var(--text-muted);">Загрузка...</div>
                     </div>
                 </div>
                 <div style="margin-top:1rem; font-size:0.8rem; color:var(--text-muted);">
-                    Для доступа требуются права GM (заголовок X-GM-Level >= 1).
+                    <span data-i18n="admin.gm_required">Для доступа требуются права GM (заголовок X-GM-Level >= 1).</span>
                 </div>
             </section>
 
             <!-- Патчи клиента -->
             <section id="section-clientpatches" class="section hidden">
-                <h2>📦 Патчи клиента WoW 3.3.5a</h2>
+                <h2 data-i18n="clientpatches.title">📦 Патчи клиента WoW 3.3.5a</h2>
                 <div class="grid">
                     <div class="card">
-                        <h3>Список патчей</h3>
+                        <h3 data-i18n="clientpatches.list">Список патчей</h3>
                         <div id="clientPatchesList">Загрузка...</div>
-                        <button class="btn btn-secondary" onclick="app.loadClientPatches()">Обновить</button>
+                        <button class="btn btn-secondary" onclick="app.loadClientPatches()" data-i18n="admin.refresh">Обновить</button>
                     </div>
                     <div class="card">
-                        <h3>Создать патч</h3>
+                        <h3 data-i18n="clientpatches.create">Создать патч</h3>
                         <div style="display:flex; flex-direction:column; gap:0.5rem;">
-                            <input type="text" id="cpName" placeholder="Название патча" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
-                            <input type="text" id="cpType" placeholder="Тип (realmlist/mpq/config/wtf/db)" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
-                            <input type="text" id="cpTargetFile" placeholder="Целевой файл (например, realmlist.wtf)" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
-                            <textarea id="cpContent" placeholder="Содержимое патча" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%; min-height:80px;"></textarea>
-                            <button class="btn btn-primary" onclick="app.clientPatchesCreate()">Создать патч</button>
+                            <input type="text" id="cpName" placeholder="" data-i18n-placeholder="clientpatches.name" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
+                            <input type="text" id="cpType" placeholder="" data-i18n-placeholder="clientpatches.type" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
+                            <input type="text" id="cpTargetFile" placeholder="" data-i18n-placeholder="clientpatches.target_file" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
+                            <textarea id="cpContent" placeholder="" data-i18n-placeholder="clientpatches.content" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%; min-height:80px;"></textarea>
+                            <button class="btn btn-primary" onclick="app.clientPatchesCreate()" data-i18n="clientpatches.create_patch">Создать патч</button>
                             <div id="cpMessage"></div>
                         </div>
                     </div>
                     <div class="card">
-                        <h3>История применения</h3>
+                        <h3 data-i18n="clientpatches.log">История применения</h3>
                         <div id="clientPatchesLog" style="max-height:200px; overflow-y:auto; font-size:0.85rem; color:var(--text-muted);">Загрузка...</div>
                     </div>
                 </div>
@@ -148,25 +156,25 @@
 
             <!-- SQL Импорт -->
             <section id="section-sqlimport" class="section hidden">
-                <h2>📦 Автоимпорт SQL</h2>
+                <h2 data-i18n="sqlimport.title">📦 Автоимпорт SQL</h2>
                 <div class="grid">
                     <div class="card">
-                        <h3>Статус импорта</h3>
+                        <h3 data-i18n="sqlimport.title">Статус импорта</h3>
                         <div id="sqlImportStatus">Загрузка...</div>
-                        <button class="btn btn-primary" onclick="app.sqlImportAll()">Импортировать все</button>
-                        <button class="btn btn-secondary" onclick="app.sqlImportNew()">Импортировать новые</button>
-                        <button class="btn btn-secondary" onclick="app.sqlImportStatus()">Обновить статус</button>
+                        <button class="btn btn-primary" onclick="app.sqlImportAll()" data-i18n="sqlimport.import_all">Импортировать все</button>
+                        <button class="btn btn-secondary" onclick="app.sqlImportNew()" data-i18n="sqlimport.import_new">Импортировать новые</button>
+                        <button class="btn btn-secondary" onclick="app.sqlImportStatus()" data-i18n="sqlimport.refresh">Обновить статус</button>
                     </div>
                     <div class="card">
-                        <h3>Импорт одного файла</h3>
+                        <h3 data-i18n="sqlimport.import_file">Импорт одного файла</h3>
                         <div style="display:flex; flex-direction:column; gap:0.5rem;">
-                            <input type="text" id="sqlFileName" placeholder="Имя файла (например, 07_campaigns_solo.sql)" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
-                            <button class="btn btn-primary" onclick="app.sqlImportFile()">Импортировать файл</button>
+                            <input type="text" id="sqlFileName" placeholder="" data-i18n-placeholder="sqlimport.file_name" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
+                            <button class="btn btn-primary" onclick="app.sqlImportFile()" data-i18n="sqlimport.import_file">Импортировать файл</button>
                             <div id="sqlFileMessage"></div>
                         </div>
                     </div>
                     <div class="card">
-                        <h3>История импорта</h3>
+                        <h3 data-i18n="sqlimport.history">История импорта</h3>
                         <div id="sqlImportLog" style="max-height:200px; overflow-y:auto; font-size:0.85rem; color:var(--text-muted);">Загрузка...</div>
                     </div>
                 </div>
@@ -174,20 +182,20 @@
 
             <!-- Управление кампаниями -->
             <section id="section-campaigns-admin" class="section hidden">
-                <h2>⚔️ Управление кампаниями</h2>
+                <h2 data-i18n="campaigns.title">⚔️ Управление кампаниями</h2>
                 <div class="card">
-                    <h3>Список кампаний и квестов</h3>
+                    <h3 data-i18n="campaigns.title">Список кампаний и квестов</h3>
                     <div id="campaignsList">Загрузка...</div>
-                    <button class="btn btn-secondary" onclick="app.loadCampaigns()">Обновить</button>
+                    <button class="btn btn-secondary" onclick="app.loadCampaigns()" data-i18n="admin.refresh">Обновить</button>
                 </div>
                 <div class="card">
-                    <h3>Быстрое действие</h3>
+                    <h3 data-i18n="admin.management">Быстрое действие</h3>
                     <div style="display:flex; flex-direction:column; gap:0.5rem;">
-                        <input type="number" id="adminQuestId" placeholder="ID квеста" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
+                        <input type="number" id="adminQuestId" placeholder="" data-i18n-placeholder="admin.char_guid" style="padding:0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; color:var(--text); width:100%;">
                         <label style="font-size:0.85rem; color:var(--text-muted); margin:0.25rem 0;">
-                            <input type="checkbox" id="adminQuestEnabled" style="margin-right:0.5rem;"> Квест активен
+                            <input type="checkbox" id="adminQuestEnabled" style="margin-right:0.5rem;"> <span data-i18n="campaigns.active">Квест активен</span>
                         </label>
-                        <button class="btn btn-primary" onclick="app.adminToggleQuest()">Применить</button>
+                        <button class="btn btn-primary" onclick="app.adminToggleQuest()" data-i18n="admin.apply_solo">Применить</button>
                         <div id="adminQuestMessage"></div>
                     </div>
                 </div>
@@ -196,10 +204,11 @@
 
         <!-- Подвал -->
         <footer class="footer">
-            Ночь темного Ворона · AzerothCore + WoW 3.3.5a · Веб-клиент v1.0.0
+            <span data-i18n="footer">Ночь темного Ворона · AzerothCore + WoW 3.3.5a · Веб-клиент v1.0.0</span>
         </footer>
     </div>
 
+    <script src="../../localization/web/i18n.js"></script>
     <script src="js/api.js"></script>
     <script src="js/app.js"></script>
 </body>

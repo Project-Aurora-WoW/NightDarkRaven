@@ -7,13 +7,16 @@ const app = {
     currentSection: 'login',
 
     async init() {
+        // Инициализация i18n
+        await I18n.init();
+
         // Проверка сервера
         try {
             await api.request('/health');
-            document.getElementById('serverStatus').textContent = 'Сервер онлайн';
+            document.getElementById('serverStatus').textContent = I18n.t('app.server_online');
             document.getElementById('serverStatus').className = 'status online';
         } catch (e) {
-            document.getElementById('serverStatus').textContent = 'Сервер недоступен';
+            document.getElementById('serverStatus').textContent = I18n.t('app.server_offline');
             document.getElementById('serverStatus').className = 'status offline';
         }
 
