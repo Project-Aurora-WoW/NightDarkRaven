@@ -2,13 +2,16 @@
 
 #include "ScriptMgr.h"
 #include "Player.h"
+#include "Creature.h"
+#include "ChatCommand.h"
 
 #include <map>
 #include <string>
 
 /*
  * Ночь темного Ворона — серверный модуль AzerothCore.
- * Навыки, соло-режим и реестр компаньонов без правок ядра.
+ * Навыки, соло-режим, стартовый набор, кампании и магазин наград.
+ * Все изменения идут через модуль: ядро не патчится.
  */
 
 namespace NightDarkRaven
@@ -53,8 +56,42 @@ namespace NightDarkRaven
         void OnAfterConfigLoad(bool /*reload*/) override;
     };
 
+    // Чат-команды .ndr solo / .ndr kit / .ndr sync
+    class CommandNightRavenScript : public CommandScript
+    {
+    public:
+        CommandNightRavenScript();
+
+        Acore::ChatCommands::ChatCommandTable GetCommands() const override;
+    };
+
+    // Фракционные дарители кампаний (Альянс 95001-95016, Орда 95101-95116)
+    class QuestGiverNightRavenScript : public CreatureScript
+    {
+    public:
+        QuestGiverNightRavenScript();
+
+        bool OnGossipHello(Player* player, Creature* creature) override;
+        bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action) override;
+    };
+
+    // Торговец наград (90099, 95016, 95116)
+    class ShopNightRavenScript : public CreatureScript
+    {
+    public:
+        ShopNightRavenScript();
+
+        bool OnGossipHello(Player* player, Creature* creature) override;
+        bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action) override;
+    };
+
     // Стартовый набор персонажа (выдаётся один раз при первом входе)
-    void GrantStartingKit(Player* player);
+    void GrantStartingKit(Player* player, bool notifyIfAlreadyGranted = false);
+
+    // Синхронизация состояния с клиентским аддоном (протокол NDR|...)
+    void SendSync(Player* player);
+    void SendCampaignProgress(Player* player);
+    void SendShop(Player* player);
 
     // Публичные функции для Lua-моста и GM-команд
     void SetSoloMode(Player* player, bool enable);

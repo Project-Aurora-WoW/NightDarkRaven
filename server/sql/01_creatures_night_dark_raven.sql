@@ -7,36 +7,23 @@ USE world;
 -- 1. Шаблон существа: "Темный Ворон" (entry 90001)
 -- --------------------------------------------------------
 INSERT INTO `creature_template` (
-    `entry`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`,
-    `faction`, `npcflag`, `speed_walk`, `speed_run`, `scale`, `unit_class`, `unit_flags`,
-    `type`, `type_flags`, `family`, `Rank`, `dmg_min`, `dmg_max`, `attack_power`, `base_attack_time`,
-    `range_attack_time`, `unit_flags2`, `dynamicflags`
-) VALUES (
-    90001, 'Темный Ворон', 'Хранитель ночи', '', 0,
-    80, 80,
-    35,                         -- faction: neutral-ish player friendly (подправить под нужную фракцию)
-    1,                          -- npcflag: gossip
-    1.0, 2.5, 1.0,
-    1, 0,                       -- unit_class, unit_flags
-    7, 138936390,               -- type: humanoid, type_flags
-    0, 0,                       -- family, Rank (normal)
-    100, 100, 0, 2000, 2000,    -- damage, attack power, base attack time
-    0, 0, 0                     -- range, unit_flags2, dynamicflags
-) ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
+    `entry`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `unit_class`, `unit_flags`, `type`, `type_flags`, `family`, `Rank`, `BaseAttackTime`, `unit_flags2`, `dynamicflags`
+) VALUES
+(90001, 'Темный Ворон', 'Хранитель ночи', '', 0, 80, 80, 35, -- faction: neutral-ish player friendly (подправить под нужную фракцию)
+    1, -- npcflag: gossip
+    1.0, 2.5, 1, 0, -- unit_class, unit_flags
+    7, 138936390, -- type: humanoid, Rank (normal)
+    100, 0, 2000)
+ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);;
 
 -- --------------------------------------------------------
 -- 2. Спавн существа (пример: seeker coordinates, подставить свои)
 -- Карта 0 (Eastern Kingdoms), пример координат рядом с Stormwind
 -- --------------------------------------------------------
 INSERT INTO `creature` (
-    `id`, `map`, `zoneId`, `areaId`, `spawnMask`, `phaseMask`, `modelid`,
-    `position_x`, `position_y`, `position_z`, `orientation`,
-    `spawntimesecs`, `animprogress`, `corpse_delay`
-) VALUES (
-    90001, 0, 0, 0, 1, 1, 0,
-    -8900.0, 530.0, 100.0, 0.0,
-    300, 0, 0
-) ON DUPLICATE KEY UPDATE `id` = VALUES(`id`);
+    `id1`, `map`, `zoneId`, `areaId`, `spawnMask`, `phaseMask`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`
+) VALUES
+(90001, 0, 0, 0, 1, 1, -8900.0, 530.0, 100.0, 0.0, 300);
 
 -- --------------------------------------------------------
 -- 3. Gossip-тексты (gossip_menu_text)

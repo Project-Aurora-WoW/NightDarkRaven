@@ -1,618 +1,363 @@
 -- ============================================================================
--- Ночь темного Ворона — Клиентский аддон для WoW 3.3.5a
--- Полная интеграция с сервером AzerothCore
--- Кампании, соло-режим, компаньоны, магазин наград
+-- Ночь темного Ворона — клиентский аддон (WoW 3.3.5a)
+-- Кампании, соло-режим, награды. Общается с серверным модулем через .ndr
 -- ============================================================================
 
-local ND_R = {}
-ND_R.version = "1.2.0"
-ND_R.addonName = "NightDarkRaven"
-ND_R.playerName = UnitName("player")
-ND_R.playerRealm = GetRealmName()
-ND_R.isInitialized = false
+local ADDON_NAME = "NightDarkRaven"
+local PREFIX = "|cff4B0082[Ночь темного Ворона]|r "
+local SERVER_PREFIX = "NDR|"
 
--- Состояние соло-режима
-ND_R.soloMode = false
-ND_R.companionActive = false
-ND_R.companionType = nil
+local ND = {}
+_G.NightDarkRaven = ND
 
--- Данные кампаний
-ND_R.campaigns = {}
-ND_R.shopItems = {}
-ND_R.isShopOpen = false
+ND.version = "1.3.0"
+ND.solo = false
+ND.progress = {}   -- [campaignId] = { done = 0, total = 0 }
+ND.shop = {}       -- { { entry=, name=, cost=, can= } }
+
+-- Статический список кампаний (id, название, квесты)
+ND.campaigns = {
+    { id = 1,  name = "Пробуждение Ворона",     quests = { 90101, 90102, 90103 } },
+    { id = 2,  name = "Тени Вороновой Горы",    quests = { 90201, 90202, 90203, 92004 } },
+    { id = 3,  name = "Проклятие Перьев",       quests = { 90301, 90302, 90303 } },
+    { id = 4,  name = "Кровавая Луна",          quests = { 90401, 90402, 90403, 90404 } },
+    { id = 5,  name = "Хранители Ночи",         quests = { 90501, 90502, 90503 } },
+    { id = 6,  name = "Забытый Храм",           quests = { 90601, 90602, 90603, 90604 } },
+    { id = 7,  name = "Печать Тьмы",            quests = { 90701, 90702, 90703 } },
+    { id = 8,  name = "Вороновой Клинок",       quests = { 90801, 90802, 90803, 90804 } },
+    { id = 9,  name = "Ночной Дозор",           quests = { 90901, 90902, 90903 } },
+    { id = 10, name = "Ворон и Луна",           quests = { 91001, 91002, 91003, 91004 } },
+    { id = 11, name = "Конец Ночи",             quests = { 91101, 91102, 91103, 91104, 91105 } },
+    { id = 12, name = "Повелители Теней",       quests = { 92001, 92002, 92003, 92004 } },
+    { id = 13, name = "Королевство Пустоты",    quests = { 92005, 92006, 92007, 92008 } },
+    { id = 14, name = "Звёздный Ворон",         quests = { 92009, 92010, 92011, 92012 } },
+    { id = 15, name = "Векрной Ворон",          quests = { 92013, 92014, 92015, 92016 } },
+}
 
 -- ============================================================================
--- Инициализация аддона
+-- Утилиты
 -- ============================================================================
 
-function ND_R:OnLoad()
-    self.frame = CreateFrame("Frame", "NightDarkRavenFrame", UIParent)
-    self.frame:RegisterEvent("PLAYER_LOGIN")
-    self.frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-    self.frame:RegisterEvent("PLAYER_LEVEL_UP")
-    self.frame:SetScript("OnEvent", function(self, event, ...)
-        ND_R:OnEvent(event, ...)
-    end)
+local function Print(msg)
+    DEFAULT_CHAT_FRAME:AddMessage(PREFIX .. msg)
+end
+ND.Print = Print
 
-    ND_R:CreateMainFrame()
-    ND_R:CreateSoloFrame()
-    ND_R:CreateCampaignFrame()
-    ND_R:CreateShopFrame()
-    ND_R:CreateCompanionFrame()
-
-    SLASH_NDR1 = "/ndr"
-    SLASH_NDR2 = "/nightraven"
-    SlashCmdList["NDR"] = function(msg)
-        ND_R:SlashCommand(msg)
-    end
-
-    print("|cff4B0082[Ночь темного Ворона]|r Аддон загружен v" .. ND_R.version .. ". Наберите /ndr для помощи.")
-    ND_R.isInitialized = true
+local function Skin(frame)
+    frame:SetBackdrop({
+        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+        tile = true, tileSize = 32, edgeSize = 32,
+        insets = { left = 8, right = 8, top = 8, bottom = 8 },
+    })
+    frame:SetBackdropColor(0.08, 0.08, 0.12, 0.95)
+    frame:EnableMouse(true)
+    frame:SetMovable(true)
+    frame:RegisterForDrag("LeftButton")
+    frame:SetScript("OnDragStart", frame.StartMoving)
+    frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
 end
 
-function ND_R:OnEvent(event, ...)
-    if event == "PLAYER_LOGIN" then
-        ND_R:Initialize()
-    elseif event == "PLAYER_ENTERING_WORLD" then
-        ND_R:OnPlayerEnteringWorld()
-    elseif event == "PLAYER_LEVEL_UP" then
-        local level = ...
-        ND_R:Print("|cff4B0082[Ночь темного Ворона]|r Вы достигли уровня " .. level .. "!")
-    end
+local function MakeButton(parent, text, width, height, onClick)
+    local b = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    b:SetWidth(width or 120)
+    b:SetHeight(height or 24)
+    b:SetText(text)
+    b:SetScript("OnClick", onClick)
+    return b
 end
 
-function ND_R:Initialize()
-    ND_R.isInitialized = true
-    ND_R:Print("|cff4B0082[Ночь темного Ворона]|r Добро пожаловать, " .. ND_R.playerName .. "!")
-    ND_R:UpdateSoloUI()
-end
-
-function ND_R:OnPlayerEnteringWorld()
-    if ND_R.isInitialized then
-        ND_R:UpdateSoloUI()
-    end
+local function MakeCloseButton(parent, onClick)
+    local b = MakeButton(parent, "Закрыть", 90, 22, onClick or function() parent:Hide() end)
+    b:SetPoint("BOTTOM", parent, "BOTTOM", 0, 14)
+    return b
 end
 
 -- ============================================================================
--- Главное окно аддона
+-- Главное окно
 -- ============================================================================
 
-function ND_R:CreateMainFrame()
+local function CreateMainFrame()
+    if ND.mainFrame then return ND.mainFrame end
+
     local f = CreateFrame("Frame", "NightDarkRavenMainFrame", UIParent)
-    f:SetWidth(300)
-    f:SetHeight(400)
-    f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-    f:SetBackdrop({
-        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-        tile = true, tileSize = 32, edgeSize = 32,
-        insets = { left = 8, right = 8, top = 8, bottom = 8 }
-    })
-    f:SetBackdropColor(0.1, 0.1, 0.15, 0.95)
-    f:EnableMouse(true)
-    f:SetMovable(true)
-    f:RegisterForDrag("LeftButton")
-    f:SetScript("OnDragStart", f.StartMoving)
-    f:SetScript("OnDragStop", f.StopMovingOrSizing)
+    f:SetWidth(280)
+    f:SetHeight(330)
+    f:SetPoint("CENTER", UIParent, "CENTER", 0, 80)
+    Skin(f)
     f:Hide()
 
     local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    title:SetPoint("TOP", f, "TOP", 0, -10)
-    title:SetText("|cff4B0082Ночь темного Ворона|r")
+    title:SetPoint("TOP", f, "TOP", 0, -12)
+    title:SetText("|cffa78bfaНочь темного Ворона|r")
 
-    local btnSolo = CreateFrame("Button", "ND_RBtnSolo", f, "UIPanelButtonTemplate")
-    btnSolo:SetWidth(120)
-    btnSolo:SetHeight(30)
-    btnSolo:SetPoint("TOP", f, "TOP", 0, -40)
-    btnSolo:SetText("Соло-режим: ВЫКЛ")
-    btnSolo:SetScript("OnClick", function()
-        ND_R:ToggleSoloMode()
+    local soloBtn = MakeButton(f, "Соло-режим: ВЫКЛ", 200, 28, function()
+        SendChatMessage(".ndr solo", "SAY")
     end)
+    soloBtn:SetPoint("TOP", f, "TOP", 0, -44)
 
-    local btnCampaigns = CreateFrame("Button", "ND_RBtnCampaigns", f, "UIPanelButtonTemplate")
-    btnCampaigns:SetWidth(120)
-    btnCampaigns:SetHeight(30)
-    btnCampaigns:SetPoint("TOP", btnSolo, "BOTTOM", 0, -10)
-    btnCampaigns:SetText("Кампании")
-    btnCampaigns:SetScript("OnClick", function()
-        ND_R:ToggleCampaignFrame()
+    local campBtn = MakeButton(f, "Кампании", 200, 28, function()
+        ND:OpenCampaigns()
     end)
+    campBtn:SetPoint("TOP", soloBtn, "BOTTOM", 0, -8)
 
-    local btnShop = CreateFrame("Button", "ND_RBtnShop", f, "UIPanelButtonTemplate")
-    btnShop:SetWidth(120)
-    btnShop:SetHeight(30)
-    btnShop:SetPoint("TOP", btnCampaigns, "BOTTOM", 0, -10)
-    btnShop:SetText("Магазин наград")
-    btnShop:SetScript("OnClick", function()
-        ND_R:ToggleShopFrame()
+    local shopBtn = MakeButton(f, "Магазин наград", 200, 28, function()
+        ND:OpenShop()
     end)
+    shopBtn:SetPoint("TOP", campBtn, "BOTTOM", 0, -8)
 
-    local btnCompanion = CreateFrame("Button", "ND_RBtnCompanion", f, "UIPanelButtonTemplate")
-    btnCompanion:SetWidth(120)
-    btnCompanion:SetHeight(30)
-    btnCompanion:SetPoint("TOP", btnShop, "BOTTOM", 0, -10)
-    btnCompanion:SetText("Компаньоны")
-    btnCompanion:SetScript("OnClick", function()
-        ND_R:ToggleCompanionFrame()
+    local kitBtn = MakeButton(f, "Забрать стартовый набор", 200, 28, function()
+        SendChatMessage(".ndr kit", "SAY")
     end)
+    kitBtn:SetPoint("TOP", shopBtn, "BOTTOM", 0, -8)
 
-    local btnClose = CreateFrame("Button", "ND_RBtnClose", f, "UIPanelButtonTemplate")
-    btnClose:SetWidth(100)
-    btnClose:SetHeight(25)
-    btnClose:SetPoint("BOTTOM", f, "BOTTOM", 0, 15)
-    btnClose:SetText("Закрыть")
-    btnClose:SetScript("OnClick", function()
-        f:Hide()
+    local helpBtn = MakeButton(f, "Помощь", 200, 28, function()
+        ND:ShowHelp()
     end)
+    helpBtn:SetPoint("TOP", kitBtn, "BOTTOM", 0, -8)
 
-    ND_R.mainFrame = f
+    MakeCloseButton(f)
+
+    ND.mainFrame = f
+    ND.soloButton = soloBtn
+    return f
 end
 
--- ============================================================================
--- Окно кампаний с прогрессом
--- ============================================================================
-
-function ND_R:CreateCampaignFrame()
-    local f = CreateFrame("Frame", "NightDarkRavenCampaignFrame", UIParent)
-    f:SetWidth(400)
-    f:SetHeight(500)
-    f:SetPoint("CENTER", UIParent, "CENTER", -200, 0)
-    f:SetBackdrop({
-        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-        tile = true, tileSize = 32, edgeSize = 32,
-        insets = { left = 8, right = 8, top = 8, bottom = 8 }
-    })
-    f:SetBackdropColor(0.1, 0.1, 0.15, 0.95)
-    f:EnableMouse(true)
-    f:SetMovable(true)
-    f:RegisterForDrag("LeftButton")
-    f:SetScript("OnDragStart", f.StartMoving)
-    f:SetScript("OnDragStop", f.StopMovingOrSizing)
-    f:Hide()
-
-    local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    title:SetPoint("TOP", f, "TOP", 0, -10)
-    title:SetText("|cff4B0082Кампании|r")
-
-    -- Список кампаний
-    local scrollFrame = CreateFrame("ScrollFrame", "ND_RCampaignScrollFrame", f, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -40)
-    scrollFrame:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -30, 50)
-
-    local content = CreateFrame("Frame", "ND_RCampaignScrollContent", scrollFrame)
-    content:SetWidth(340)
-    content:SetHeight(1)
-    scrollFrame:SetScrollChild(content)
-    ND_R.campaignContent = content
-
-    local btnClose = CreateFrame("Button", "ND_RBtnCampaignClose", f, "UIPanelButtonTemplate")
-    btnClose:SetWidth(100)
-    btnClose:SetHeight(25)
-    btnClose:SetPoint("BOTTOM", f, "BOTTOM", 0, 15)
-    btnClose:SetText("Закрыть")
-    btnClose:SetScript("OnClick", function()
-        f:Hide()
-    end)
-
-    ND_R.campaignFrame = f
-end
-
-function ND_R:PopulateCampaignFrame()
-    local content = ND_R.campaignContent
-    if not content then return end
-
-    for i = 1, content:GetNumChildren() do
-        local child = select(i, content:GetChildren())
-        if child then child:Hide() end
-    end
-
-    local yOffset = -10
-    for _, camp in ipairs(ND_R.campaigns) do
-        local frame = CreateFrame("Frame", "ND_RCamp_" .. camp.campaignId, content)
-        frame:SetWidth(320)
-        frame:SetHeight(60)
-        frame:SetPoint("TOPLEFT", content, "TOPLEFT", 10, yOffset)
-        frame:SetBackdrop({
-            bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-            tile = true, tileSize = 16, edgeSize = 16,
-            insets = { left = 4, right = 4, top = 4, bottom = 4 }
-        })
-        frame:SetBackdropColor(0.2, 0.2, 0.3, 0.8)
-
-        local nameText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        nameText:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -8)
-        nameText:SetText("|cffa78bfa" .. camp.campaignName .. "|r")
-        nameText:SetTextColor(0.8, 0.2, 0.8, 1)
-
-        local progressText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-        progressText:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -20)
-        progressText:SetText(string.format("Прогресс: %d/%d квестов", camp.completedQuests, camp.totalQuests))
-
-        local btnEnter = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-        btnEnter:SetWidth(80)
-        btnEnter:SetHeight(20)
-        btnPoint = "BOTTOMRIGHT"
-        btnEnter:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -10, 5)
-        btnEnter:SetText("Подробнее")
-        btnEnter:SetScript("OnClick", function()
-            ND_R:ShowCampaignDetails(camp.campaignId)
-        end)
-
-        yOffset = yOffset - 70
-    end
-
-    content:SetHeight(math.max(400, #ND_R.campaigns * 75 + 20))
-end
-
-function ND_R:ShowCampaignDetails(campaignId)
-    local camp = nil
-    for _, c in ipairs(ND_R.campaigns) do
-        if c.campaignId == campaignId then
-            camp = c
-            break
-        end
-    end
-
-    if not camp then return end
-
-    local msg = "|cff4B0082[Ночь темного Ворона]|r Кампания: " .. camp.campaignName .. "\n"
-    for _, q in ipairs(camp.quests) do
-        local status = q.status == 2 and "|cff00ff00[Завершено]|r" or q.status == 1 and "|cffffd700[В прогрессе]|r" or "|cff7f7f7f[Не начат]|r"
-        msg = msg .. "\n  " .. q.questName .. ": " .. status
-    end
-    ND_R:Print(msg)
-end
-
--- ============================================================================
--- Окно магазина наград
--- ============================================================================
-
-function ND_R:CreateShopFrame()
-    local f = CreateFrame("Frame", "NightDarkRavenShopFrame", UIParent)
-    f:SetWidth(450)
-    f:SetHeight(550)
-    f:SetPoint("CENTER", UIParent, "CENTER", 200, 0)
-    f:SetBackdrop({
-        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-        tile = true, tileSize = 32, edgeSize = 32,
-        insets = { left = 8, right = 8, top = 8, bottom = 8 }
-    })
-    f:SetBackdropColor(0.1, 0.1, 0.15, 0.95)
-    f:EnableMouse(true)
-    f:SetMovable(true)
-    f:RegisterForDrag("LeftButton")
-    f:SetScript("OnDragStart", f.StartMoving)
-    f:SetScript("OnDragStop", f.StopMovingOrSizing)
-    f:Hide()
-
-    local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    title:SetPoint("TOP", f, "TOP", 0, -10)
-    title:SetText("|cff4B0082Магазин наград|r")
-
-    local scrollFrame = CreateFrame("ScrollFrame", "ND_RShopScrollFrame", f, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -40)
-    scrollFrame:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -30, 50)
-
-    local content = CreateFrame("Frame", "ND_RShopScrollContent", scrollFrame)
-    content:SetWidth(400)
-    content:SetHeight(1)
-    scrollFrame:SetScrollChild(content)
-    ND_R.shopContent = content
-
-    local btnClose = CreateFrame("Button", "ND_RBtnShopClose", f, "UIPanelButtonTemplate")
-    btnClose:SetWidth(100)
-    btnClose:SetHeight(25)
-    btnClose:SetPoint("BOTTOM", f, "BOTTOM", 0, 15)
-    btnClose:SetText("Закрыть")
-    btnClose:SetScript("OnClick", function()
-        f:Hide()
-    end)
-
-    ND_R.shopFrame = f
-end
-
-function ND_R:PopulateShopFrame()
-    local content = ND_R.shopContent
-    if not content then return end
-
-    for i = 1, content:GetNumChildren() do
-        local child = select(i, content:GetChildren())
-        if child then child:Hide() end
-    end
-
-    local yOffset = -10
-    for _, item in ipairs(ND_R.shopItems) do
-        local frame = CreateFrame("Frame", "ND_RShopItem_" .. item.itemId, content)
-        frame:SetWidth(380)
-        frame:SetHeight(70)
-        frame:SetPoint("TOPLEFT", content, "TOPLEFT", 10, yOffset)
-        frame:SetBackdrop({
-            bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-            tile = true, tileSize = 16, edgeSize = 16,
-            insets = { left = 4, right = 4, top = 4, bottom = 4 }
-        })
-        frame:SetBackdropColor(0.2, 0.2, 0.3, 0.8)
-
-        local itemName = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        itemName:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -8)
-        itemName:SetText(item.itemName)
-        itemName:SetTextColor(1, 0.8, 0, 1)
-
-        local itemDesc = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-        itemDesc:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -22)
-        itemDesc:SetText(item.itemDesc)
-        itemDesc:SetTextColor(0.8, 0.8, 0.8, 1)
-
-        local costText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-        costText:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -36)
-        local costStr = ""
-        if item.costGold > 0 then
-            costStr = costStr .. item.costGold .. " зол."
-        end
-        if item.costTokens > 0 then
-            costStr = costStr .. item.costTokens .. " токенов"
-        end
-        costText:SetText("Стоимость: " .. costStr)
-        costText:SetTextColor(1, 1, 0, 1)
-
-        local btnBuy = CreateFrame("Button", "ND_RBtnBuy_" .. item.itemId, frame, "UIPanelButtonTemplate")
-        btnBuy:SetWidth(80)
-        btnBuy:SetHeight(22)
-        btnBuy:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -10, 5)
-        btnBuy:SetText(item.canBuy and "Купить" or "Заблокировано")
-        btnBuy:SetScript("OnClick", function()
-            if item.canBuy then
-                ND_R:BuyItem(item.itemId)
-            else
-                ND_R:Print("|cffFF0000[Ночь темного Ворона]|r " .. item.reason)
-            end
-        end)
-
-        if not item.canBuy then
-            btnBuy:SetEnabled(false)
-        end
-
-        yOffset = yOffset - 75
-    end
-
-    content:SetHeight(math.max(400, #ND_R.shopItems * 80 + 20))
-end
-
--- ============================================================================
--- Окно компаньонов
--- ============================================================================
-
-function ND_R:CreateCompanionFrame()
-    local f = CreateFrame("Frame", "NightDarkRavenCompanionFrame", UIParent)
-    f:SetWidth(250)
-    f:SetHeight(200)
-    f:SetPoint("CENTER", UIParent, "CENTER", 150, -100)
-    f:SetBackdrop({
-        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-        tile = true, tileSize = 32, edgeSize = 32,
-        insets = { left = 8, right = 8, top = 8, bottom = 8 }
-    })
-    f:SetBackdropColor(0.1, 0.1, 0.15, 0.95)
-    f:EnableMouse(true)
-    f:SetMovable(true)
-    f:RegisterForDrag("LeftButton")
-    f:SetScript("OnDragStart", f.StartMoving)
-    f:SetScript("OnDragStop", f.StopMovingOrSizing)
-    f:Hide()
-
-    local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    title:SetPoint("TOP", f, "TOP", 0, -10)
-    title:SetText("|cff4B0082Компаньоны|r")
-
-    local btnRaven = CreateFrame("Button", "ND_RBtnCompanionRaven", f, "UIPanelButtonTemplate")
-    btnRaven:SetWidth(120)
-    btnRaven:SetHeight(30)
-    btnRaven:SetPoint("TOP", f, "TOP", 0, -40)
-    btnRaven:SetText("Теневой Врон")
-    btnRaven:SetScript("OnClick", function()
-        ND_R:SpawnCompanion("shadow_raven")
-    end)
-
-    local btnGuard = CreateFrame("Button", "ND_RBtnCompanionGuard", f, "UIPanelButtonTemplate")
-    btnGuard:SetWidth(120)
-    btnGuard:SetHeight(30)
-    btnGuard:SetPoint("TOP", btnRaven, "BOTTOM", 0, -10)
-    btnGuard:SetText("Страж Ночи")
-    btnGuard:SetScript("OnClick", function()
-        ND_R:SpawnCompanion("night_guard")
-    end)
-
-    local btnHealer = CreateFrame("Button", "ND_RBtnCompanionHealer", f, "UIPanelButtonTemplate")
-    btnHealer:SetWidth(120)
-    btnHealer:SetHeight(30)
-    btnHealer:SetPoint("TOP", btnGuard, "BOTTOM", 0, -10)
-    btnHealer:SetText("Целитель Лунный")
-    btnHealer:SetScript("OnClick", function()
-        ND_R:SpawnCompanion("moon_healer")
-    end)
-
-    local btnDismiss = CreateFrame("Button", "ND_RBtnCompanionDismiss", f, "UIPanelButtonTemplate")
-    btnDismiss:SetWidth(120)
-    btnDismiss:SetHeight(30)
-    btnDismiss:SetPoint("TOP", btnHealer, "BOTTOM", 0, -10)
-    btnDismiss:SetText("Отозвать компаньона")
-    btnDismiss:SetScript("OnClick", function()
-        ND_R:DismissCompanion()
-    end)
-
-    local btnClose = CreateFrame("Button", "ND_RBtnCompanionClose", f, "UIPanelButtonTemplate")
-    btnClose:SetWidth(100)
-    btnClose:SetHeight(25)
-    btnClose:SetPoint("BOTTOM", f, "BOTTOM", 0, 15)
-    btnClose:SetText("Закрыть")
-    btnClose:SetScript("OnClick", function()
-        f:Hide()
-    end)
-
-    ND_R.companionFrame = f
-end
-
--- ============================================================================
--- Соло-режим
--- ============================================================================
-
-function ND_R:ToggleSoloMode()
-    ND_R.soloMode = not ND_R.soloMode
-    ND_R:UpdateSoloUI()
-    
-    if ND_R.soloMode then
-        ND_R:Print("|cff4B0082[Ночь темного Ворона]|r Соло-режим ВКЛЮЧЕН.")
+function ND:UpdateSoloButton()
+    if not self.soloButton then return end
+    if self.solo then
+        self.soloButton:SetText("Соло-режим: ВКЛ")
     else
-        ND_R:Print("|cff4B0082[Ночь темного Ворона]|r Соло-режим ВЫКЛЮЧЕН.")
+        self.soloButton:SetText("Соло-режим: ВЫКЛ")
     end
 end
 
-function ND_R:UpdateSoloUI()
-    if ND_R.mainFrame and ND_R.mainFrame.btnSolo then
-        if ND_R.soloMode then
-            ND_R.mainFrame.btnSolo:SetText("Соло-режим: ВКЛ")
-        else
-            ND_R.mainFrame.btnSolo:SetText("Соло-режим: ВЫКЛ")
+-- ============================================================================
+-- Окно кампаний
+-- ============================================================================
+
+local function CreateCampaignFrame()
+    if ND.campaignFrame then return ND.campaignFrame end
+
+    local f = CreateFrame("Frame", "NightDarkRavenCampaignFrame", UIParent)
+    f:SetWidth(430)
+    f:SetHeight(480)
+    f:SetPoint("CENTER", UIParent, "CENTER", -230, 0)
+    Skin(f)
+    f:Hide()
+
+    local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    title:SetPoint("TOP", f, "TOP", 0, -12)
+    title:SetText("|cffa78bfaКампании|r")
+
+    local hint = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    hint:SetPoint("TOP", title, "BOTTOM", 0, -4)
+    hint:SetText("Прогресс приходит с сервера при входе в мир")
+
+    local scroll = CreateFrame("ScrollingMessageFrame", "NightDarkRavenCampaignScroll", f)
+    scroll:SetPoint("TOPLEFT", f, "TOPLEFT", 14, -58)
+    scroll:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -14, 48)
+    scroll:SetFading(false)
+    scroll:SetMaxLines(500)
+    scroll:SetFontObject(GameFontNormal)
+    scroll:SetJustifyH("LEFT")
+
+    MakeCloseButton(f)
+
+    ND.campaignFrame = f
+    ND.campaignScroll = scroll
+    return f
+end
+
+function ND:RefreshCampaigns()
+    local scroll = self.campaignScroll
+    if not scroll then return end
+    scroll:Clear()
+
+    for _, camp in ipairs(self.campaigns) do
+        local p = self.progress[camp.id]
+        local done = p and p.done or 0
+        local total = p and p.total or #camp.quests
+        local color = "|cff7f7f7f"
+        if done >= total and total > 0 then
+            color = "|cff00ff00"
+        elseif done > 0 then
+            color = "|cffffd700"
         end
+        scroll:AddMessage(string.format("%s[%d] %s — %d/%d|r", color, camp.id, camp.name, done, total))
     end
 end
 
+function ND:OpenCampaigns()
+    CreateCampaignFrame():Show()
+    self:RefreshCampaigns()
+end
+
 -- ============================================================================
--- Компаньоны
+-- Окно магазина
 -- ============================================================================
 
-function ND_R:SpawnCompanion(type)
-    if not ND_R.soloMode then
-        ND_R:Print("|cffFF0000[Ночь темного Ворона]|r Включите соло-режим для призыва компаньона.")
+local function CreateShopFrame()
+    if ND.shopFrame then return ND.shopFrame end
+
+    local f = CreateFrame("Frame", "NightDarkRavenShopFrame", UIParent)
+    f:SetWidth(430)
+    f:SetHeight(440)
+    f:SetPoint("CENTER", UIParent, "CENTER", 230, 0)
+    Skin(f)
+    f:Hide()
+
+    local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    title:SetPoint("TOP", f, "TOP", 0, -12)
+    title:SetText("|cffa78bfaМагазин наград|r")
+
+    local hint = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    hint:SetPoint("TOP", title, "BOTTOM", 0, -4)
+    hint:SetText("Купить можно у NPC «Торговец кампаний» (entry 90099/95016/95116)")
+
+    local scroll = CreateFrame("ScrollingMessageFrame", "NightDarkRavenShopScroll", f)
+    scroll:SetPoint("TOPLEFT", f, "TOPLEFT", 14, -58)
+    scroll:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -14, 48)
+    scroll:SetFading(false)
+    scroll:SetMaxLines(300)
+    scroll:SetFontObject(GameFontNormal)
+    scroll:SetJustifyH("LEFT")
+
+    MakeCloseButton(f)
+
+    ND.shopFrame = f
+    ND.shopScroll = scroll
+    return f
+end
+
+function ND:RefreshShop()
+    local scroll = self.shopScroll
+    if not scroll then return end
+    scroll:Clear()
+
+    if #self.shop == 0 then
+        scroll:AddMessage("|cff7f7f7fДанные магазина ещё не получены. Нажмите «Обновить».|r")
         return
     end
 
-    ND_R.companionActive = true
-    ND_R.companionType = type
-
-    local companionNames = {
-        shadow_raven = "Теневой Врон",
-        night_guard = "Страж Ночи",
-        moon_healer = "Целитель Лунный"
-    }
-
-    ND_R:Print("|cff4B0082[Ночь темного Ворона]|r Компаньон призывает: " .. (companionNames[type] or type) .. ".")
-end
-
-function ND_R:DismissCompanion()
-    ND_R.companionActive = false
-    ND_R.companionType = nil
-    ND_R:Print("|cff4B0082[Ночь темного Ворона]|r Компаньон отозван.")
-end
-
--- ============================================================================
--- Магазин
--- ============================================================================
-
-function ND_R:ToggleShopFrame()
-    if ND_R.shopFrame:IsShown() then
-        ND_R.shopFrame:Hide()
-    else
-        ND_R:RequestShopData()
-        ND_R.shopFrame:Show()
+    for _, item in ipairs(self.shop) do
+        local color = item.can and "|cff00ff00" or "|cffff5555"
+        scroll:AddMessage(string.format("%s%s|r — %s зол.", color, item.name, tostring(item.cost)))
     end
 end
 
-function ND_R:RequestShopData()
-    -- Запрашиваем данные магазина через gossip NPC
-    -- В реальном AzerothCore здесь был бы вызов через сервер
-    -- Здесь мы эмулируем загрузку данных
-    ND_R.shopItems = ND_R:GetMockShopData()
-    ND_R:PopulateShopFrame()
+function ND:OpenShop()
+    CreateShopFrame():Show()
+    self:RefreshShop()
 end
 
-function ND_R:GetMockShopData()
-    -- Это временные данные, в реальности они приходят с сервера
-    return {
-        { itemId = 1, itemEntry = 90001, itemName = "Перо Тени", itemDesc = "Квестовая награда кампании 1", campaignReq = 1, questReq = 90101, costType = "gold", costGold = 500000, costTokens = 0, maxPurchases = 1, canBuy = true },
-        { itemId = 2, itemEntry = 90021, itemName = "Шкура Горного Волка", itemDesc = "Квестовая награда кампании 2", campaignReq = 2, questReq = 90201, costType = "gold", costGold = 2000000, costTokens = 0, maxPurchases = 1, canBuy = false },
-        { itemId = 3, itemEntry = 90111, itemName = "Сердце Темного Ворона", itemDesc = "Квестовая награда кампании 11", campaignReq = 11, questReq = 91103, costType = "gold", costGold = 20000000, costTokens = 0, maxPurchases = 1, canBuy = false },
-    }
-end
+-- ============================================================================
+-- Серверные сообщения NDR|...
+-- ============================================================================
 
-function ND_R:BuyItem(itemId)
-    -- В реальном AzerothCore здесь был бы вызов gossip NPC для покупки
-    -- Здесь мы эмулируем покупку
-    local item = nil
-    for _, it in ipairs(ND_R.shopItems) do
-        if it.itemId == itemId then
-            item = it
-            break
+function ND:OnSystemMessage(msg)
+    if not msg or string.sub(msg, 1, #SERVER_PREFIX) ~= SERVER_PREFIX then
+        return false
+    end
+
+    local parts = {}
+    for token in string.gmatch(msg, "[^|]+") do
+        parts[#parts + 1] = token
+    end
+
+    local kind = parts[2]
+    if kind == "SOLO" then
+        self.solo = (parts[3] == "1")
+        self:UpdateSoloButton()
+    elseif kind == "CAMP" then
+        local id = tonumber(parts[3])
+        if id then
+            self.progress[id] = { done = tonumber(parts[4]) or 0, total = tonumber(parts[5]) or 0 }
+            if self.campaignFrame and self.campaignFrame:IsShown() then
+                self:RefreshCampaigns()
+            end
         end
+    elseif kind == "SHOP" then
+        self.shop[#self.shop + 1] = {
+            entry = tonumber(parts[3]) or 0,
+            name = parts[4] or "?",
+            cost = tonumber(parts[5]) or 0,
+            can = (parts[6] == "1"),
+        }
+        if self.shopFrame and self.shopFrame:IsShown() then
+            self:RefreshShop()
+        end
+    elseif kind == "SHOPRESET" then
+        self.shop = {}
     end
 
-    if item then
-        if item.canBuy then
-            ND_R:Print("|cff4B0082[Ночь темного Ворона]|r Предмет '" .. item.itemName .. "' приобретён!")
-            item.canBuy = false
-            ND_R:PopulateShopFrame()
-        else
-            ND_R:Print("|cffFF0000[Ночь темного Ворона]|r " .. item.reason)
-        end
-    end
+    return true
 end
 
 -- ============================================================================
--- Команды чата
+-- Инициализация и команды
 -- ============================================================================
 
-function ND_R:SlashCommand(msg)
+function ND:Init()
+    CreateMainFrame()
+    CreateCampaignFrame()
+    CreateShopFrame()
+    self:UpdateSoloButton()
+    Print("Аддон v" .. self.version .. " загружен. Команды: /ndr help")
+    SendChatMessage(".ndr sync", "SAY")
+end
+
+function ND:ShowHelp()
+    Print("=== Ночь темного Ворона v" .. self.version .. " ===")
+    Print("/ndr — главное окно")
+    Print("/ndr campaigns — кампании и прогресс")
+    Print("/ndr shop — магазин наград")
+    Print("/ndr solo — включить/выключить соло-режим")
+    Print("/ndr kit — повторно забрать стартовый набор")
+    Print("/ndr sync — запросить данные с сервера")
+end
+
+SLASH_NIGHTDARKRAVEN1 = "/ndr"
+SLASH_NIGHTDARKRAVEN2 = "/nightraven"
+SlashCmdList["NIGHTDARKRAVEN"] = function(msg)
     local cmd = string.lower(msg or "")
 
-    if cmd == "" or cmd == "help" then
-        ND_R:ShowHelp()
-    elseif cmd == "solo" or cmd == "соло" then
-        ND_R:ToggleSoloMode()
-    elseif cmd == "companion" or cmd == "компаньон" then
-        ND_R:ToggleCompanionFrame()
-    elseif cmd == "campaign" or cmd == "кампания" then
-        ND_R:ToggleCampaignFrame()
+    if cmd == "" or cmd == "main" then
+        local f = CreateMainFrame()
+        if f:IsShown() then f:Hide() else f:Show() end
+    elseif cmd == "campaigns" or cmd == "кампании" then
+        ND:OpenCampaigns()
     elseif cmd == "shop" or cmd == "магазин" then
-        ND_R:ToggleShopFrame()
-    elseif cmd == "main" or cmd == "главное" then
-        if ND_R.mainFrame:IsShown() then
-            ND_R.mainFrame:Hide()
-        else
-            ND_R.mainFrame:Show()
-        end
+        ND:OpenShop()
+    elseif cmd == "solo" or cmd == "соло" then
+        SendChatMessage(".ndr solo", "SAY")
+    elseif cmd == "kit" or cmd == "набор" then
+        SendChatMessage(".ndr kit", "SAY")
+    elseif cmd == "sync" or cmd == "обновить" then
+        SendChatMessage(".ndr sync", "SAY")
+    elseif cmd == "help" or cmd == "помощь" then
+        ND:ShowHelp()
     else
-        ND_R:Print("|cffFF0000[Ночь темного Ворона]|r Неизвестная команда: " .. msg)
-        ND_R:Print("|cff4B0082[Ночь темного Ворона]|r Наберите /ndr help для справки.")
+        Print("Неизвестная команда: " .. cmd .. ". Попробуйте /ndr help")
     end
 end
 
-function ND_R:ShowHelp()
-    ND_R:Print("|cff4B0082=== Ночь темного Ворона - Аддон v" .. ND_R.version .. " ===")
-    ND_R:Print("|cff4B0082/ndr          - Открыть главное окно")
-    ND_R:Print("|cff4B0082/ndr solo     - Включить/выключить соло-режим")
-    ND_R:Print("|cff4B0082/ndr companion - Открыть меню компаньонов")
-    ND_R:Print("|cff4B0082/ndr campaign - Открыть меню кампаний")
-    ND_R:Print("|cff4B0082/ndr shop     - Открыть магазин наград")
-    ND_R:Print("|cff4B0082/ndr dungeon  - Показать соло-подземелья")
-    ND_R:Print("|cff4B0082/ndr help     - Эта справка")
-end
+-- ============================================================================
+-- События
+-- ============================================================================
 
-function ND_R:Print(msg)
-    DEFAULT_CHAT_FRAME:AddMessage(msg)
-end
-
--- Запуск инициализации
-ND_R.frame:SetScript("OnEvent", function(self, event, ...)
-    ND_R:OnEvent(event, ...)
+local eventFrame = CreateFrame("Frame", "NightDarkRavenEventFrame", UIParent)
+eventFrame:RegisterEvent("ADDON_LOADED")
+eventFrame:RegisterEvent("PLAYER_LOGIN")
+eventFrame:RegisterEvent("CHAT_MSG_SYSTEM")
+eventFrame:SetScript("OnEvent", function(_, event, arg1)
+    if event == "ADDON_LOADED" then
+        if arg1 == ADDON_NAME then
+            NightDarkRavenDB = NightDarkRavenDB or {}
+        end
+    elseif event == "PLAYER_LOGIN" then
+        ND:Init()
+    elseif event == "CHAT_MSG_SYSTEM" then
+        ND:OnSystemMessage(arg1)
+    end
 end)
-
-if IsLoggedIn() then
-    ND_R:Initialize()
-end
-
-ND_R:Print("|cff4B0082[Ночь темного Ворона]|r Аддон загружен. Наберите /ndr для справки.")

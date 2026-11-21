@@ -6,19 +6,6 @@
 
 USE world;
 
--- Таблица прогресса кампаний по персонажам
-CREATE TABLE IF NOT EXISTS `character_campaign_progress` (
-    `character_guid` INT UNSIGNED NOT NULL,
-    `campaign_id` SMALLINT UNSIGNED NOT NULL,
-    `quest_id` INT UNSIGNED NOT NULL,
-    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0, -- 0=not started, 1=in progress, 2=completed
-    `completed_at` TIMESTAMP NULL DEFAULT NULL,
-    `reward_claimed` TINYINT UNSIGNED NOT NULL DEFAULT 0,
-    PRIMARY KEY (`character_guid`, `quest_id`),
-    INDEX `idx_character` (`character_guid`),
-    INDEX `idx_campaign` (`campaign_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 -- Таблица наград магазина
 CREATE TABLE IF NOT EXISTS `campaign_shop_items` (
     `item_id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -33,6 +20,7 @@ CREATE TABLE IF NOT EXISTS `campaign_shop_items` (
     `max_purchases` INT UNSIGNED NOT NULL DEFAULT 1, -- 0 = без лимита
     `is_active` TINYINT UNSIGNED NOT NULL DEFAULT 1,
     `sort_order` INT UNSIGNED NOT NULL DEFAULT 0,
+    UNIQUE KEY `uk_item_entry` (`item_entry`),
     INDEX `idx_campaign_required` (`campaign_required`),
     INDEX `idx_quest_required` (`quest_required`),
     INDEX `idx_sort` (`sort_order`)
@@ -48,8 +36,8 @@ CREATE TABLE IF NOT EXISTS `campaign_shop_purchases` (
     INDEX `idx_item` (`item_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Наполняем магазин наградами
-INSERT INTO `campaign_shop_items` (`item_entry`, `item_name`, `item_description`, `campaign_required`, `quest_required`, `cost_type`, `cost_gold`, `cost_tokens`, `max_purchases`, `sort_order`) VALUES
+-- Наполняем магазин наградами (REPLACE делает импорт идемпотентным)
+REPLACE INTO `campaign_shop_items` (`item_entry`, `item_name`, `item_description`, `campaign_required`, `quest_required`, `cost_type`, `cost_gold`, `cost_tokens`, `max_purchases`, `sort_order`) VALUES
 -- Кампания 1 награды
 (90001, 'Перо Тени', 'Квестовая награда кампании 1', 1, 90101, 'gold', 500000, 0, 1, 1),
 (90003, 'Клык Теневой Совы', 'Квестовая награда кампании 1', 1, 90102, 'gold', 750000, 0, 1, 2),

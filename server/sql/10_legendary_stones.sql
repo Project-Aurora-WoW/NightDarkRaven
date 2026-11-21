@@ -31,9 +31,11 @@ INSERT INTO `item_template` (`entry`, `name`, `displayid`, `Quality`, `Flags`, `
 -- --------------------------------------------------------
 -- 2. NPC дачители квестов камней
 -- --------------------------------------------------------
-INSERT INTO `creature_template` (`entry`, `name`, `subname`, `minlevel`, `maxlevel`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `scale`, `unit_class`, `unit_flags`, `type`, `type_flags`, `Rank`, `dmg_min`, `dmg_max`, `base_attack_time`) VALUES
-(93001, 'Мастер Камней Теней', 'Ювелир Ночных Стражей', 80, 80, 35, 1, 1.0, 2.5, 1.0, 1, 0, 7, 138936390, 0, 100, 150, 2000),
-(93002, 'Хранитель Легенд', 'Историк Ночных Стражей', 80, 80, 35, 1, 1.0, 2.5, 1.0, 1, 0, 7, 138936390, 0, 80, 120, 2000);
+INSERT INTO `creature_template` (
+    `entry`, `name`, `subname`, `minlevel`, `maxlevel`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `unit_class`, `unit_flags`, `type`, `type_flags`, `Rank`, `BaseAttackTime`
+) VALUES
+(93001, 'Мастер Камней Теней', 'Ювелир Ночных Стражей', 80, 80, 35, 1, 1.0, 2.5, 1, 0, 7, 138936390, 0, 2000),
+(93002, 'Хранитель Легенд', 'Историк Ночных Стражей', 80, 80, 35, 1, 1.0, 2.5, 1, 0, 7, 138936390, 0, 2000);
 
 -- --------------------------------------------------------
 -- 3. Квесты камней легенды
@@ -108,8 +110,9 @@ INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 -- --------------------------------------------------------
 -- 4. Спавны NPC камней (карта 0, около Stormwind)
 -- --------------------------------------------------------
-INSERT INTO `creature` (`id`, `map`, `zoneId`, `areaId`, `spawnMask`, `phaseMask`, `modelid`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `animprogress`, `corpse_delay`) VALUES
-(93001, 0, 0, 0, 1, 1, 0, -8880.0, 520.0, 100.0, 0.0, 300, 0, 0),  -- Мастер Камней Теней
-(93002, 0, 0, 0, 1, 1, 0, -8890.0, 520.0, 100.0, 0.0, 300, 0, 0);  -- Хранитель Легенд
+INSERT INTO `creature` (
+    `id1`, `map`, `zoneId`, `areaId`, `spawnMask`, `phaseMask`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`
+) VALUES
+(93001, 0, 0, 0, 1, 1, -8880.0, 520.0, 100.0, 0.0, 300);  -- Хранитель Легенд
 
 SELECT 'Legendary Stones content installed' AS info;
