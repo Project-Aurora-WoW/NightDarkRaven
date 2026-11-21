@@ -53,6 +53,9 @@ namespace NightDarkRaven
         void OnAfterConfigLoad(bool /*reload*/) override;
     };
 
+    // Стартовый набор персонажа (выдаётся один раз при первом входе)
+    void GrantStartingKit(Player* player);
+
     // Публичные функции для Lua-моста и GM-команд
     void SetSoloMode(Player* player, bool enable);
     bool IsSoloMode(Player* player);

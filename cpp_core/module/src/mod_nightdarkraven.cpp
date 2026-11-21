@@ -20,6 +20,7 @@ namespace
 
     bool g_EnableSoloMode = true;
     bool g_EnableCustomSkills = true;
+    bool g_EnableStartingKit = true;
 
     inline ObjectGuid::LowType GetGuidLow(Player* player)
     {
@@ -69,6 +70,69 @@ namespace NightDarkRaven
                     g_SkillCache[guid][fields[0].Get<uint32>()] = fields[1].Get<uint32>();
                 } while (result->NextRow());
             }
+        }
+
+        if (g_EnableStartingKit)
+            GrantStartingKit(player);
+    }
+
+    void GrantStartingKit(Player* player)
+    {
+        if (!player)
+            return;
+
+        ObjectGuid::LowType guid = GetGuidLow(player);
+
+        // Уже выдавали?
+        if (CharacterDatabase.Query("SELECT 1 FROM character_nightraven_kit WHERE guid = {}", guid))
+            return;
+
+        // Набор = общие предметы (class_id = 0) + предметы класса
+        QueryResult result = WorldDatabase.Query(
+            "SELECT item_entry, count FROM nightdarkraven_starting_kit "
+            "WHERE class_id IN (0, {}) ORDER BY class_id, item_entry",
+            static_cast<uint32>(player->getClass()));
+
+        if (!result)
+        {
+            LOG_ERROR("module", "[NightDarkRaven] Starting kit table is empty, player {} gets nothing", guid);
+            return;
+        }
+
+        uint32 granted = 0;
+        uint32 failed = 0;
+
+        do
+        {
+            Field* fields = result->Fetch();
+            uint32 entry = fields[0].Get<uint32>();
+            uint32 count = fields[1].Get<uint32>();
+
+            if (player->AddItem(entry, count))
+                ++granted;
+            else
+            {
+                ++failed;
+                LOG_ERROR("module", "[NightDarkRaven] Cannot add starting item {} to player {}", entry, guid);
+            }
+        } while (result->NextRow());
+
+        // Отмечаем выдачу, чтобы не дублировать предметы при следующем входе
+        CharacterDatabase.Execute(
+            "INSERT IGNORE INTO character_nightraven_kit (guid) VALUES ({})", guid);
+
+        if (granted)
+        {
+            player->SendSystemMessage(
+                "|cff4B0082[Ночь темного Ворона]|r Стартовый набор получен. "
+                "Предметы: " + std::to_string(granted) + ".");
+        }
+
+        if (failed)
+        {
+            player->SendSystemMessage(
+                "|cffFF0000[Ночь темного Ворона]|r Не хватило места в сумках для "
+                + std::to_string(failed) + " предмет(ов) стартового набора.");
         }
     }
 
@@ -128,12 +192,14 @@ namespace NightDarkRaven
     {
         g_EnableSoloMode = sConfigMgr->GetOption<bool>("NightDarkRaven.EnableSoloMode", true);
         g_EnableCustomSkills = sConfigMgr->GetOption<bool>("NightDarkRaven.EnableCustomSkills", true);
+        g_EnableStartingKit = sConfigMgr->GetOption<bool>("NightDarkRaven.EnableStartingKit", true);
 
         g_SoloHealthMultiplier = sConfigMgr->GetOption<float>("NightDarkRaven.SoloHealthMultiplier", 0.60f);
         g_SoloDamageMultiplier = sConfigMgr->GetOption<float>("NightDarkRaven.SoloDamageMultiplier", 0.70f);
 
-        LOG_INFO("server.loading", "[NightDarkRaven] C++ module loaded: solo={} skills={} hp={} dmg={}",
-            g_EnableSoloMode, g_EnableCustomSkills, g_SoloHealthMultiplier, g_SoloDamageMultiplier);
+        LOG_INFO("server.loading", "[NightDarkRaven] C++ module loaded: solo={} skills={} kit={} hp={} dmg={}",
+            g_EnableSoloMode, g_EnableCustomSkills, g_EnableStartingKit,
+            g_SoloHealthMultiplier, g_SoloDamageMultiplier);
     }
 
     void SetSoloMode(Player* player, bool enable)

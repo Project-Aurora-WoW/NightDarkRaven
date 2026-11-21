@@ -21,4 +21,11 @@ CREATE TABLE IF NOT EXISTS `character_solo_state` (
     INDEX `idx_account` (`account_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Выдан ли персонажу стартовый набор (защита от повторной выдачи)
+CREATE TABLE IF NOT EXISTS `character_nightraven_kit` (
+    `guid` INT UNSIGNED NOT NULL,
+    `received_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SELECT 'NightDarkRaven C++ module schema installed' AS info;
